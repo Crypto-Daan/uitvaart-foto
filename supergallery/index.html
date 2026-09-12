@@ -92,31 +92,9 @@
       <div class="viewer-toolbar">
         <div class="seg" role="tablist" aria-label="Weergave">
           <button role="tab" data-view="photo" aria-pressed="true">Foto</button>
-          <button role="tab" data-view="orbit" aria-pressed="false">3D Orbit</button>
-          <button role="tab" data-view="front" aria-pressed="false">Vooraanzicht</button>
-          <button role="tab" data-view="edge" aria-pressed="false">Lijstdikte (3D)</button>
-          <button role="tab" data-view="glass" aria-pressed="false">Glasinspectie</button>
+          <button role="tab" data-view="orbit" aria-pressed="false">3D</button>
           <button role="tab" data-view="wall" aria-pressed="false">Mijn muur</button>
-          <button role="tab" data-view="compare" aria-pressed="false">Vergelijk formaten</button>
-        </div>
-        <div class="toolbar-right">
-          <div class="select-pill">
-            <select id="studio" aria-label="Expositie-omgeving">
-              <option value="studio">Expositie Studio</option>
-              <option value="galerie">Galerie wit</option>
-              <option value="woonkamer">Woonkamer warm</option>
-              <option value="donker">Donkere wand</option>
-            </select>
-          </div>
-          <button class="round" id="scaleToggle" aria-pressed="false" title="Schaal tonen (persoon 1,75 m)" aria-label="Schaal tonen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v6m0 0-3 6m3-6 3 6M8 11h8"/></svg>
-          </button>
-          <button class="round" id="spinToggle" aria-pressed="false" title="Automatisch draaien" aria-label="Automatisch draaien">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6v12l10-6z"/></svg>
-          </button>
-          <button class="round" id="resetView" title="Weergave herstellen" aria-label="Weergave herstellen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>
-          </button>
+          <button role="tab" data-view="compare" aria-pressed="false">Vergelijk</button>
         </div>
       </div>
 
@@ -156,19 +134,38 @@
           <p class="cmp-note" id="cmpNote"></p>
         </div>
         <div class="viewer-hud">
-          <div class="hud-top">
-            <span class="chip"><span class="dot"></span><strong id="hudConfig">Print · geen lijst</strong></span>
-            <span class="chip" id="hudView">Sleep om te draaien</span>
-          </div>
-          <div class="hud-bottom">
-            <span class="chip">Totale afmeting <strong id="hudSize">45 × 30 cm</strong></span>
-            <span class="hint">Scroll of knijp om te zoomen · twee vingers of Shift+slepen om te schuiven</span>
-          </div>
+          <span class="chip"><strong id="hudSize">45 × 30 cm</strong></span>
+          <span class="hud-hint" id="hudHint">Sleep om te draaien · knijp of scroll om te zoomen</span>
         </div>
-      </div>
-      <div class="viewer-notes">
-        <span><b>Fotorealistische weergave</b> — echte verhoudingen, lijstprofiel en reflectie per afwerking.</span>
-        <span>Kleuren op je scherm kunnen afwijken van de afdruk.</span>
+        <div class="viewer-bar" id="viewerBar">
+          <button type="button" data-cam="front" title="Vooraanzicht" aria-label="Vooraanzicht" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="14"/><rect x="7" y="8" width="10" height="8"/></svg>
+          </button>
+          <button type="button" data-cam="edge" title="Lijstdikte (zijaanzicht)" aria-label="Lijstdikte" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 4l10 3v13L7 17z"/><path d="M7 4v13M17 7l-3 1"/></svg>
+          </button>
+          <button type="button" data-cam="glass" title="Glasinspectie (close-up)" aria-label="Glasinspectie" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6"/><path d="m20 20-5-5M7.5 9a3 3 0 0 1 3-3"/></svg>
+          </button>
+          <span class="bar-sep"></span>
+          <div class="select-pill">
+            <select id="studio" aria-label="Omgeving">
+              <option value="studio">Studio</option>
+              <option value="galerie">Galerie</option>
+              <option value="woonkamer">Woonkamer</option>
+              <option value="donker">Donker</option>
+            </select>
+          </div>
+          <button type="button" id="scaleToggle" aria-pressed="false" title="Schaal tonen (persoon 1,75 m)" aria-label="Schaal tonen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v6m0 0-3 6m3-6 3 6M8 11h8"/></svg>
+          </button>
+          <button type="button" id="spinToggle" aria-pressed="false" title="Automatisch draaien" aria-label="Automatisch draaien">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6v12l10-6z"/></svg>
+          </button>
+          <button type="button" id="resetView" title="Weergave herstellen" aria-label="Weergave herstellen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 

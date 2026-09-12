@@ -222,7 +222,7 @@
     $('sumPrice').textContent = done ? euro(p.total) : 'Vanaf ' + euro(BASE);
     $('sumLabel').textContent = done ? 'Totaal' : 'Prijs';
     $('hudSize').textContent = fmtWH(d.W, d.H);
-    $('hudConfig').textContent = (done ? '' : 'Voorbeeld · ') + describe();
+    $('hudSize').title = (done ? '' : 'Voorbeeld · ') + describe();
   }
 
   function update() {
@@ -248,12 +248,22 @@
   let viewer = null;
   let currentView = 'orbit';
   const viewerEl = $('viewer');
-  const VIEW_HINT = { orbit: 'Sleep om te draaien', front: 'Recht van voren', edge: 'Zijaanzicht: lijstprofiel en opbouw', glass: 'Close-up: reflectie van de afwerking' };
   const OVERLAY_MODES = { photo: 'viewerPhoto', wall: 'viewerWall', compare: 'viewerCompare' };
+  let hintShown = false;
 
+  /* Tabs: foto / 3D / mijn muur / vergelijk. Camerastanden (voor, zijkant, close-up) zitten in de balk in de 3D-weergave. */
   function setViewTab(name) {
-    document.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === name)); });
-    if (!OVERLAY_MODES[name]) { currentView = name; $('hudView').textContent = VIEW_HINT[name] || ''; }
+    const tab = OVERLAY_MODES[name] ? name : 'orbit';
+    document.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === tab)); });
+    if (!OVERLAY_MODES[name]) {
+      currentView = name;
+      document.querySelectorAll('[data-cam]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.cam === name)); });
+    }
+  }
+  function showHintOnce() {
+    if (hintShown) return; hintShown = true;
+    const h = $('hudHint'); h.classList.add('show');
+    setTimeout(function () { h.classList.remove('show'); }, 3500);
   }
 
   function setMode(mode) {
@@ -261,9 +271,8 @@
     Object.keys(OVERLAY_MODES).forEach(function (m) { $(OVERLAY_MODES[m]).classList.toggle('off', m !== mode); });
     viewerEl.classList.toggle('is-photo', mode === 'photo');
     viewerEl.classList.toggle('is-overlay', mode !== '3d');
-    document.querySelectorAll('.toolbar-right .round, #studio').forEach(function (el) { el.disabled = mode !== '3d'; });
     if (mode !== '3d') { setViewTab(mode); if (viewer) viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false'); }
-    else { setViewTab(currentView); if (viewer) viewer.setView(currentView); }
+    else { setViewTab(currentView); if (viewer) viewer.setView(currentView); showHintOnce(); }
     if (mode === 'wall') renderWall();
     if (mode === 'compare') renderCompare();
   }
@@ -292,6 +301,7 @@
     // geen WebGL: de foto blijft staan, de 3D-knoppen doen niets
     $('viewerLoading').classList.add('done');
     $('to3d').hidden = true;
+    $('viewerBar').hidden = true;
     document.querySelectorAll('[data-view]:not([data-view="photo"])').forEach(function (b) { b.disabled = true; });
   }
 
@@ -300,8 +310,14 @@
       const v = b.dataset.view;
       if (OVERLAY_MODES[v]) { setMode(v); return; }
       if (!viewer) return;
-      currentView = v;
-      if (state.mode !== '3d') setMode('3d'); else { setViewTab(v); viewer.setView(v); }
+      if (state.mode !== '3d') setMode('3d');
+    });
+  });
+  document.querySelectorAll('[data-cam]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (!viewer) return;
+      const v = b.getAttribute('aria-pressed') === 'true' ? 'orbit' : b.dataset.cam;   // nogmaals klikken: terug naar vrij draaien
+      currentView = v; setViewTab(v); viewer.setView(v);
       viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false');
     });
   });
