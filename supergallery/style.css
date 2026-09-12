@@ -186,7 +186,6 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 
 .opts { display: grid; gap: 10px; }
 .opts.sizes, .opts.finishes, .opts.frames { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 420px) { .opts.sizes, .opts.finishes, .opts.frames { grid-template-columns: repeat(2, 1fr); } }
 
 .opt {
   text-align: center; border: 2px solid var(--line); background: var(--surface);
@@ -198,9 +197,10 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 .opt:disabled { opacity: 0.4; cursor: not-allowed; }
 .opt .t { font-size: 0.92rem; color: var(--ink); }
 .opt .d { font-size: 0.92rem; font-weight: 600; color: var(--ink); }
+.opt .ds { display: none; }
 .opt .p { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
 .opt.pic { padding: 0 0 14px; gap: 0; }
-.opt.pic img { width: 100%; aspect-ratio: 1; object-fit: cover; margin-bottom: 14px; background: var(--panel); }
+.opt.pic img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; margin-bottom: 14px; background: var(--panel); }
 .opt.pic .t { font-size: 0.88rem; padding-inline: 6px; }
 .opts.mats { grid-template-columns: 1fr; margin-top: 12px; }
 .opt.mat { padding: 16px 12px; }
@@ -303,9 +303,6 @@ footer .legal { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(-
   .seg button { padding: 8px 11px; font-size: 0.76rem; }
   .hint { display: none; }
   .hud-top, .hud-bottom { flex-wrap: wrap; }
-  .group { padding: 18px 16px 22px; }
-  .group-head { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .group-head .sel { text-align: left; }
 }
 
 /* ---------- Mijn muur ---------- */
@@ -377,4 +374,25 @@ footer .legal { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(-
   .cmp-item { font-size: 0.7rem; padding: 6px 4px; }
   .cmp-item b { font-size: 0.78rem; }
   .cmp-note { display: none; }
+}
+
+/* Mobiel: dezelfde compacte kaarten als op supergallery.nl (vier kolommen, weinig tekst) */
+@media (max-width: 600px) {
+  .opts { gap: 8px; }
+  .opts.sizes, .opts.finishes, .opts.frames { grid-template-columns: repeat(4, 1fr); }
+  .opt { padding: 14px 4px; gap: 4px; border-width: 2px; }
+  .opt .t { font-size: 0.74rem; line-height: 1.2; }
+  .opt .d { font-size: 0.68rem; font-weight: 500; white-space: nowrap; }
+  .opt .d .dl { display: none; }
+  .opt .d .ds { display: inline; }
+  .opts.sizes .opt .p, .opts.finishes .opt .p { display: none; }
+  .opt.pic { padding: 0 0 10px; }
+  .opt.pic img { margin-bottom: 8px; }
+  .opt.pic .t { font-size: 0.7rem; padding-inline: 3px; }
+  .opts.frames .opt .p { font-size: 0.66rem; margin-top: 2px; }
+  .group { padding: 16px 12px 18px; }
+  .group-head { flex-direction: row; align-items: baseline; }
+  .group-head h2 { font-size: 0.9rem; }
+  .group-head .sel { font-size: 1.05rem; }
+  .rule-note { font-size: 0.76rem; }
 }

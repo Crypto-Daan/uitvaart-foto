@@ -131,7 +131,7 @@
       b.className = 'opt'; b.type = 'button';
       b.setAttribute('aria-pressed', String(s === state.size));
       const from = BASE + FINISHES[0].mod[s.id];
-      b.innerHTML = '<span class="t">' + s.name + '</span><span class="d">' + s.w + ' × ' + s.h + ' cm</span><span class="p">vanaf ' + euro(from) + '</span>';
+      b.innerHTML = '<span class="t">' + s.name + '</span><span class="d"><span class="dl">' + s.w + ' × ' + s.h + ' cm</span><span class="ds">' + s.w + '×' + s.h + 'cm</span></span><span class="p">vanaf ' + euro(from) + '</span>';
       b.addEventListener('click', function () { choose(function () { state.size = s; ensureFrameValid(); }); });
       box.appendChild(b);
     });
