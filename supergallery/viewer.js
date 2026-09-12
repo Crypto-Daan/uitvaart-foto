@@ -361,6 +361,7 @@
     const el = renderer.domElement;
     const pointers = new Map();
     let pinchDist = 0;
+    let pinchCenter = null;
 
     function userTouched() {
       state.lastUser = performance.now();
@@ -379,21 +380,30 @@
       const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 1) {
-        // het werk beweegt mee met de sleeprichting (alsof je het object zelf vastpakt)
-        state.yawT = clamp(state.yawT - dx * 0.0065, -1.35, 1.35);
-        state.pitchT = clamp(state.pitchT + dy * 0.0045, -0.4, 0.65);
+        if (e.buttons === 2 || e.shiftKey) {
+          panBy(dx, dy);                       // rechtermuisknop of Shift+slepen: schuiven
+        } else {
+          // het werk beweegt mee met de sleeprichting (alsof je het object zelf vastpakt)
+          state.yawT = clamp(state.yawT - dx * 0.0065, -1.35, 1.35);
+          state.pitchT = clamp(state.pitchT + dy * 0.0045, -0.4, 0.65);
+        }
         userTouched();
       } else if (pointers.size === 2) {
+        // twee vingers: knijpen om te zoomen, samen bewegen om te schuiven
         const p = Array.from(pointers.values());
         const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
         if (pinchDist > 0) zoomBy(pinchDist / d);
         pinchDist = d;
+        const cx = (p[0].x + p[1].x) / 2, cy = (p[0].y + p[1].y) / 2;
+        if (pinchCenter) panBy(cx - pinchCenter.x, cy - pinchCenter.y);
+        pinchCenter = { x: cx, y: cy };
         userTouched();
       }
     });
+    el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     function endPointer(e) {
       pointers.delete(e.pointerId);
-      if (pointers.size < 2) pinchDist = 0;
+      if (pointers.size < 2) { pinchDist = 0; pinchCenter = null; }
       if (pointers.size === 0) { state.dragging = false; container.classList.remove('dragging'); }
     }
     el.addEventListener('pointerup', endPointer);
@@ -405,6 +415,13 @@
     }, { passive: false });
     el.addEventListener('dblclick', function () { applyView('orbit', true); onInteract('view', 'orbit'); });
 
+    /* Schuiven in schermrichting; pixels omgerekend naar cm op de afstand van het doel */
+    function panBy(dx, dy) {
+      const h = container.clientHeight || 1;
+      const perPx = 2 * state.distT * Math.tan(camera.fov * DEG / 2) / h;
+      state.txT = clamp(state.txT - dx * perPx * Math.cos(state.yawT), -state.W, state.W);
+      state.tyT = clamp(state.tyT + dy * perPx, -state.H - 60, state.H);
+    }
     function zoomBy(f) { state.distT = clamp(state.distT * f, state.fit * 0.22, state.fit * 2.4); }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
