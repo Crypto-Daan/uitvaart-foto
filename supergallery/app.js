@@ -43,9 +43,9 @@
   const PP_MOD = { 42: 150, 43: 200, 44: 250, 45: 400, 46: 500, 47: 750, 48: 1000 }; // Giant: niet leverbaar
 
   const NONE_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#efece6"/>' +
-    '<rect x="22" y="30" width="56" height="40" fill="#fff" stroke="#cfc7ba" stroke-width="1.5"/>' +
-    '<path d="M26 66 L44 46 L54 58 L62 50 L74 66 Z" fill="#d9d2c4"/><circle cx="64" cy="40" r="4" fill="#b18f3c"/></svg>');
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#f4f4f4"/>' +
+    '<rect x="22" y="30" width="56" height="40" fill="#fff" stroke="#d0d0d0" stroke-width="1.5"/>' +
+    '<path d="M26 66 L44 46 L54 58 L62 50 L74 66 Z" fill="#dedede"/><circle cx="64" cy="40" r="4" fill="#bdbdbd"/></svg>');
   const NONE = { key: 'none', type: 'none', name: 'Geen lijst', thumb: NONE_ICON, desc: 'Alleen het werk', mod: {} };
 
   function frameOptions(finish) {
@@ -76,7 +76,7 @@
   const state = { size: SIZES[1], finish: FINISHES[1], frame: NONE, bag: 0 };
 
   const $ = function (id) { return document.getElementById(id); };
-  const euro = function (n) { return '€ ' + Math.round(n).toLocaleString('nl-NL'); };
+  const euro = function (n) { return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
   const fmtWH = function (w, h) { return Math.round(w) + ' × ' + Math.round(h) + ' cm'; };
 
   function frameName(frame) {

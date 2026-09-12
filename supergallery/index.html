@@ -7,7 +7,7 @@
   <meta name="description" content="Poolside Backgammon (Acapulco, 1972) van Slim Aarons als echte fotoprint. Kies formaat, afwerking en lijst en bekijk je configuratie fotorealistisch in 3D." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" />
   <link rel="stylesheet" href="style.css" />
   <script type="application/ld+json">
   {
@@ -24,20 +24,12 @@
 </head>
 <body>
 
-<div class="usp-bar">
-  <div class="wrap">
-    <span>Echtheidscertificaat van Getty Images Gallery</span>
-    <span>Eigen fotolab sinds 1977</span>
-    <span>100% tevredenheidsgarantie</span>
-    <span>Levertijd 10 werkdagen · verzending NL &amp; BE inbegrepen</span>
-  </div>
-</div>
-
 <header class="site">
   <div class="wrap nav">
-    <button class="icon-btn nav-toggle" aria-label="Menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
+    <a class="logo" href="#" aria-label="SuperGallery home">
+      <span class="name">Super Gallery</span>
+      <span class="sub">Prism Studio 3D</span>
+    </a>
     <ul>
       <li><a href="#">Home</a></li>
       <li><a href="#" aria-current="page">Slim Aarons</a></li>
@@ -45,33 +37,56 @@
       <li><a href="#">Photographers</a></li>
       <li><a href="#">Contact</a></li>
     </ul>
-    <a class="logo" href="#" aria-label="SuperGallery home">
-      <span class="name">Super Gallery</span>
-      <span class="sub">Prism Studio 3D</span>
-    </a>
     <div class="nav-tools">
-      <button class="pill" id="themeToggle" aria-pressed="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
-        <span id="themeLabel">Donker</span>
-      </button>
-      <label class="pill search" for="q">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Zoek fotograaf" style="border:0;background:none;outline:none;font:inherit;color:inherit;width:100%" />
-      </label>
       <a class="icon-btn" href="#" aria-label="Account">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7.5" r="3.8"/><path d="M4.5 20.5c0-3.9 3.4-6.5 7.5-6.5s7.5 2.6 7.5 6.5"/></svg>
+      </a>
+      <a class="icon-btn" href="#" aria-label="Verlanglijst">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20.5 4.6 13.2a4.4 4.4 0 0 1 6.2-6.2L12 8.2l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2z"/></svg>
       </a>
       <a class="icon-btn" href="#" aria-label="Winkelmand" id="bagBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l1 13H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8.5h14l-1 12H6z"/><path d="M8.5 8.5V7a3.5 3.5 0 0 1 7 0v1.5"/></svg>
         <span class="badge" id="bagCount" hidden>0</span>
       </a>
+      <button class="icon-btn" id="themeToggle" aria-pressed="false" aria-label="Donker of licht thema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <span id="themeLabel" hidden>Donker</span>
+      </button>
+      <button class="icon-btn nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 7h17M3.5 12h17M3.5 17h17"/></svg>
+      </button>
+      <div class="lang">
+        <select id="lang" aria-label="Taal">
+          <option>Nederlands</option>
+          <option>English</option>
+          <option>Deutsch</option>
+        </select>
+      </div>
     </div>
   </div>
 </header>
 
 <main class="wrap">
+  <div class="usps">
+    <div class="usp">
+      <div class="ic"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 6h20l10 10v34H14z"/><path d="M34 6v10h10"/><circle cx="30" cy="30" r="6" stroke="#e8c73a"/><path d="M26 35l-2 12 6-3 6 3-2-12" stroke="#e8c73a"/></svg></div>
+      <div class="sep"></div>
+      <div><h3>Certificaat</h3><p>Alle foto's worden geleverd met een echtheidscertificaat van de Getty Images Gallery</p></div>
+    </div>
+    <div class="usp">
+      <div class="ic"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="14" width="44" height="30" rx="2"/><circle cx="28" cy="29" r="8"/><path d="M20 14l3-5h10l3 5"/></svg></div>
+      <div class="sep"></div>
+      <div><h3>Eigen fotolab</h3><p>Echte fotoprints, gemaakt en afgewerkt in ons eigen lab, actief sinds 1977</p></div>
+    </div>
+    <div class="usp">
+      <div class="ic"><svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M28 6l18 6v14c0 12-8 20-18 24C18 46 10 38 10 26V12z"/><path d="M19 28l6 6 12-12"/></svg></div>
+      <div class="sep"></div>
+      <div><h3>100% garantie</h3><p>Niet tevreden? Binnen 14 dagen retour, verzending in Nederland en België inbegrepen</p></div>
+    </div>
+  </div>
+
   <nav class="crumbs" aria-label="Kruimelpad">
-    <a href="#">Home</a><span>›</span><a href="#">Slim Aarons</a><span>›</span><span aria-current="page">Poolside Backgammon</span>
+    <a href="#">Home</a><span>/</span><a href="#">Slim Aarons</a><span>/</span><span aria-current="page">Poolside Backgammon</span>
   </nav>
 
   <div class="product">
@@ -93,10 +108,10 @@
               <option value="donker">Donkere wand</option>
             </select>
           </div>
-          <button class="round ghost" id="scaleToggle" aria-pressed="false" title="Schaal tonen (persoon 1,75 m)" aria-label="Schaal tonen">
+          <button class="round" id="scaleToggle" aria-pressed="false" title="Schaal tonen (persoon 1,75 m)" aria-label="Schaal tonen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5" r="2.2"/><path d="M12 8v6m0 0-3 6m3-6 3 6M8 11h8"/></svg>
           </button>
-          <button class="round ghost" id="spinToggle" aria-pressed="false" title="Automatisch draaien" aria-label="Automatisch draaien">
+          <button class="round" id="spinToggle" aria-pressed="false" title="Automatisch draaien" aria-label="Automatisch draaien">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6v12l10-6z"/></svg>
           </button>
           <button class="round" id="resetView" title="Weergave herstellen" aria-label="Weergave herstellen">
@@ -126,16 +141,18 @@
 
     <!-- ================= Configurator ================= -->
     <div class="config">
-      <p class="eyebrow">Limited edition fine art print · Slim Aarons</p>
       <h1>Poolside Backgammon</h1>
+      <p class="byline">Slim Aarons · 1972</p>
+      <p class="from">Vanaf € 250,00</p>
+      <p class="from-note">Inclusief btw · Voor je gemaakt binnen 10 werkdagen.</p>
       <p class="intro">Gasten spelen backgammon op een luchtbed aan de rand van het zwembad van Villa Nirvana in Las Brisas, Acapulco, 1972. Een archiefprint van het originele negatief uit het Hulton Archive.</p>
       <div class="facts">
-        <span>1972</span><span>Mexico</span><span>Hulton Archive Collection</span><span>Landscape 2:3</span><span>Kleur</span>
+        <span>Mexico</span><span>Hulton Archive Collection</span><span>Landscape 2:3</span><span>Kleur</span>
       </div>
 
       <div class="group">
         <div class="group-head">
-          <h2>Formaat selectie</h2>
+          <h2>Formaat</h2>
           <span class="sel" id="sizeSel"></span>
         </div>
         <div class="opts sizes" id="sizeOpts"></div>
@@ -152,7 +169,7 @@
 
       <div class="group">
         <div class="group-head">
-          <h2 id="frameTitle">3D Baklijst</h2>
+          <h2 id="frameTitle">Lijst</h2>
           <span class="sel" id="frameSel"></span>
         </div>
         <div class="opts frames" id="frameOpts"></div>
@@ -165,8 +182,8 @@
         <div class="row"><span>Opbouw</span><b id="sumBuild"></b></div>
         <div class="row"><span>Ophangsysteem</span><b id="sumHang"></b></div>
         <div class="total">
-          <div><span class="eyebrow">Totaal</span><small>incl. btw, verzending NL &amp; BE en echtheidscertificaat</small></div>
-          <span class="amount" id="sumPrice">€ 250</span>
+          <div><span class="label">Totaal</span><small>Inclusief btw, verzending NL &amp; BE en echtheidscertificaat</small></div>
+          <span class="amount" id="sumPrice">€ 250,00</span>
         </div>
       </div>
 
@@ -202,6 +219,7 @@
     <div class="quote">
       <img src="img/author.jpg" alt="Portret van Slim Aarons" width="96" height="96" loading="lazy" />
       <div>
+        <p class="k">Fotograaf</p>
         <blockquote>“Photographing attractive people who were doing attractive things in attractive places.”</blockquote>
         <p class="who">Slim Aarons, 1916 – 2006 · Aarons over zijn eigen werk</p>
         <div class="bio">
@@ -222,10 +240,10 @@
     <p class="prose">Elke print wordt gemaakt van het originele negatief of de originele dia, in eigendom van en bewaard in het Getty Images Archive. Bij de print hoort een certificaat van de Getty Images Gallery met de datum van uitgifte.</p>
 
     <div class="quality">
-      <div class="q-item"><div class="ic">C</div><h3>Echte fotoprint</h3><p>Fujicolor Crystal Archive DP II, mat. Fotopapier dat chemisch wordt ontwikkeld, geen inkjetprint.</p></div>
-      <div class="q-item"><div class="ic">P</div><h3>Facemount</h3><p>De C-print wordt over het volledige oppervlak gemonteerd op 3 mm PLEXIGLAS® en afgedekt met 3 mm Dibond.</p></div>
-      <div class="q-item"><div class="ic">H</div><h3>Verborgen ophangsysteem</h3><p>Een verstek ophangprofiel op de Dibond. Volledig onzichtbaar, geen schroeven door je foto.</p></div>
-      <div class="q-item"><div class="ic">G</div><h3>Echtheidscertificaat</h3><p>Elk werk komt met een certificaat van de Getty Images Gallery met de datum van uitgifte.</p></div>
+      <div class="q-item"><div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="30" height="30"/><path d="M5 27l9-9 7 7 5-5 9 9"/><circle cx="27" cy="13" r="3"/></svg></div><h3>Echte fotoprint</h3><p>Fujicolor Crystal Archive DP II, mat. Fotopapier dat chemisch wordt ontwikkeld, geen inkjetprint.</p></div>
+      <div class="q-item"><div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 12h28v20H6z"/><path d="M6 8h28M10 32v3M30 32v3"/></svg></div><h3>Facemount</h3><p>De C-print wordt over het volledige oppervlak gemonteerd op 3 mm PLEXIGLAS® en afgedekt met 3 mm Dibond.</p></div>
+      <div class="q-item"><div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 34V10h24v24"/><path d="M14 16h12M20 6v4"/><circle cx="20" cy="5" r="1.5"/></svg></div><h3>Verborgen ophangsysteem</h3><p>Een verstek ophangprofiel op de Dibond. Volledig onzichtbaar, geen schroeven door je foto.</p></div>
+      <div class="q-item"><div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M10 4h14l7 7v25H10z"/><path d="M24 4v7h7"/><circle cx="21" cy="22" r="4" stroke="#e8c73a"/><path d="M18 25l-1 9 4-2 4 2-1-9" stroke="#e8c73a"/></svg></div><h3>Echtheidscertificaat</h3><p>Elk werk komt met een certificaat van de Getty Images Gallery met de datum van uitgifte.</p></div>
     </div>
 
     <div class="layers">
@@ -237,31 +255,24 @@
       <div class="layer-diagram" aria-label="Opbouw van het fotopaneel in doorsnede">
         <svg viewBox="0 0 420 240" role="img">
           <title>Doorsnede fotopaneel: plexiglas, C-print, Dibond, ophangprofiel</title>
-          <rect x="0" y="0" width="420" height="240" fill="none"/>
-          <!-- wall -->
-          <rect x="330" y="20" width="22" height="200" fill="#d9d3c8"/>
-          <text x="341" y="235" font-size="10" text-anchor="middle" fill="#736d64" font-family="Plus Jakarta Sans, sans-serif">muur</text>
-          <!-- hanging profile -->
+          <rect x="330" y="20" width="22" height="200" fill="#d9d9d9"/>
+          <text x="341" y="235" font-size="10" text-anchor="middle" fill="#6f6f6f" font-family="Plus Jakarta Sans, sans-serif">muur</text>
           <path d="M300 90 h30 v60 h-30 v-12 h18 v-36 h-18 z" fill="#8a8a8a"/>
-          <!-- dibond -->
           <rect x="270" y="30" width="30" height="180" fill="#2b2b2b"/>
-          <!-- print -->
           <rect x="262" y="30" width="8" height="180" fill="#c98a5a"/>
-          <!-- plexi -->
           <rect x="232" y="30" width="30" height="180" fill="#bfe3ec" opacity="0.8"/>
           <rect x="232" y="30" width="30" height="180" fill="none" stroke="#8fc4d2"/>
-          <!-- labels -->
-          <g font-family="Plus Jakarta Sans, sans-serif" font-size="11" fill="#4a4640">
-            <line x1="247" y1="40" x2="150" y2="40" stroke="#b18f3c" stroke-width="1"/>
+          <g font-family="Plus Jakarta Sans, sans-serif" font-size="11" fill="#444444">
+            <line x1="247" y1="40" x2="150" y2="40" stroke="#262626" stroke-width="1"/>
             <text x="20" y="44">3 mm PLEXIGLAS® / TruLife®</text>
-            <line x1="266" y1="90" x2="150" y2="90" stroke="#b18f3c" stroke-width="1"/>
+            <line x1="266" y1="90" x2="150" y2="90" stroke="#262626" stroke-width="1"/>
             <text x="20" y="94">C-print, facemount zonder luchtlaag</text>
-            <line x1="285" y1="140" x2="150" y2="140" stroke="#b18f3c" stroke-width="1"/>
+            <line x1="285" y1="140" x2="150" y2="140" stroke="#262626" stroke-width="1"/>
             <text x="20" y="144">3 mm Dibond</text>
-            <line x1="315" y1="190" x2="150" y2="190" stroke="#b18f3c" stroke-width="1"/>
+            <line x1="315" y1="190" x2="150" y2="190" stroke="#262626" stroke-width="1"/>
             <text x="20" y="194">Verstek ophangprofiel, onzichtbaar</text>
           </g>
-          <text x="247" y="225" font-size="9" text-anchor="middle" fill="#736d64" font-family="Plus Jakarta Sans, sans-serif">voorzijde</text>
+          <text x="247" y="225" font-size="9" text-anchor="middle" fill="#6f6f6f" font-family="Plus Jakarta Sans, sans-serif">voorzijde</text>
         </svg>
       </div>
     </div>
@@ -272,7 +283,7 @@
 <section class="related">
   <div class="wrap">
     <div class="related-head">
-      <div><p class="eyebrow">Meer van Slim Aarons</p><h2 class="title serif" style="font-weight:500;font-size:1.8rem;margin:6px 0 0">Ook uit deze collectie</h2></div>
+      <div><p class="eyebrow">Meer van Slim Aarons</p><h2>Ook uit deze collectie</h2></div>
       <a href="#">Bekijk alle werken</a>
     </div>
     <div class="grid-rel" id="relatedGrid"></div>
@@ -283,8 +294,8 @@
   <div class="wrap">
     <div class="cols">
       <div>
-        <div class="logo" style="text-align:left"><span class="name">Super Gallery</span><span class="sub">Prism Studio 3D</span></div>
-        <p style="margin-top:12px;max-width:44ch">SuperGallery verkoopt foto's van uitzonderlijke fotografen: echte fotoprints, gemaakt en afgewerkt in een fotolab dat sinds 1977 actief is.</p>
+        <div class="logo"><span class="name">Super Gallery</span></div>
+        <p style="margin-top:14px;max-width:44ch">SuperGallery verkoopt foto's van uitzonderlijke fotografen: echte fotoprints, gemaakt en afgewerkt in een fotolab dat sinds 1977 actief is.</p>
       </div>
       <div><h4>Collecties</h4><ul><li><a href="#">Slim Aarons</a></li><li><a href="#">Getty Images Gallery</a></li><li><a href="#">Photographers</a></li></ul></div>
       <div><h4>Service</h4><ul><li><a href="#">Lijstopties</a></li><li><a href="#">Kwaliteit &amp; materialen</a></li><li><a href="#">Verzending &amp; retour</a></li><li><a href="#">Materiaalstaal bestellen</a></li></ul></div>
