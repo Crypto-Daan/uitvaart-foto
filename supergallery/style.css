@@ -126,7 +126,8 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
   background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line);
   max-width: calc(100% - 24px);
 }
-.viewer.is-overlay .viewer-bar { display: none; }
+.viewer-bar { transition: opacity 0.4s ease 0.35s; }
+.viewer.is-overlay .viewer-bar { opacity: 0; pointer-events: none; transition-delay: 0s; }
 .viewer-bar button { width: 34px; height: 34px; display: grid; place-items: center; color: var(--ink-2); }
 .viewer-bar button svg { width: 17px; height: 17px; }
 .viewer-bar button:hover { color: var(--ink); background: var(--panel); }
@@ -147,6 +148,8 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 @media (max-width: 600px) { .viewer { aspect-ratio: 1 / 1; } }
 .viewer canvas { width: 100% !important; height: 100% !important; display: block; cursor: grab; }
 .viewer.dragging canvas { cursor: grabbing; }
+.viewer-hud { transition: opacity 0.4s ease 0.35s; }
+.viewer.is-overlay .viewer-hud { opacity: 0; transition-delay: 0s; }
 .viewer-hud { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 12px; gap: 8px; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px;
@@ -157,7 +160,7 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 .hud-hint { font-size: 0.76rem; color: var(--muted); background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 4px 10px; opacity: 0; transition: opacity 0.4s; }
 .hud-hint.show { opacity: 1; }
 /* 2D-foto als startbeeld, tot er een configuratie is gekozen */
-.viewer-photo { position: absolute; inset: 0; z-index: 4; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 12px 12px 96px; transition: opacity 0.35s; touch-action: pan-y; cursor: grab; }
+.viewer-photo { position: absolute; inset: 0; z-index: 4; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 12px 12px 96px; transition: opacity 0.55s ease; touch-action: pan-y; cursor: grab; }
 .viewer-photo:active { cursor: grabbing; }
 .swipe-hint { position: absolute; left: 50%; bottom: 68px; transform: translateX(-50%); font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
 .viewer-photo.off { opacity: 0; pointer-events: none; }

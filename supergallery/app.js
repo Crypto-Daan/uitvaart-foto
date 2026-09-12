@@ -266,7 +266,14 @@
     setTimeout(function () { h.classList.remove('show'); }, 3500);
   }
 
+  function photoRect() {
+    const img = $('viewerPhoto').querySelector('img');
+    const v = viewerEl.getBoundingClientRect(), i = img.getBoundingClientRect();
+    return { x: i.left - v.left, y: i.top - v.top, w: i.width, h: i.height, vw: v.width, vh: v.height };
+  }
   function setMode(mode) {
+    const from = state.mode;
+    if (mode === '3d' && from === 'photo' && viewer) viewer.enterFrom(photoRect());
     state.mode = mode;
     Object.keys(OVERLAY_MODES).forEach(function (m) { $(OVERLAY_MODES[m]).classList.toggle('off', m !== mode); });
     viewerEl.classList.toggle('is-photo', mode === 'photo');
@@ -337,8 +344,8 @@
         if (Math.abs(dx) < 18 || Math.abs(dx) < Math.abs(dy) * 1.2) return;   // nog geen duidelijke horizontale veeg
         g.live = true;
         try { el.setPointerCapture(e.pointerId); } catch (x) {}
+        currentView = 'orbit';
         setMode('3d');
-        viewer.setView('orbit');
       }
       viewer.nudge(dx, dy);
       g.x = e.clientX; g.y = e.clientY;

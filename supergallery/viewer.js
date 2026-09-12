@@ -511,6 +511,22 @@
     }
 
     return {
+      /* Start de camera zó dat het werk exact op de plek en grootte van de 2D-foto staat
+         (r: rect van de foto in px binnen de viewer, plus vw/vh van de viewer), en beweeg dan naar het 3D-standpunt. */
+      enterFrom: function (r) {
+        if (!r || !r.w || !r.vw) return;
+        const tanH = Math.tan(camera.fov * DEG / 2);
+        const aspect = camera.aspect || (r.vw / r.vh);
+        const visW = state.cfg.w * (r.vw / r.w);          // cm zichtbaar over de volle breedte
+        const perPx = visW / r.vw;
+        const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+        state.yaw = 0; state.pitch = 0;
+        state.dist = visW / (2 * tanH * aspect);
+        state.tx = -(cx - r.vw / 2) * perPx;
+        state.ty = (cy - r.vh / 2) * perPx;
+        state.boost = 1;
+        applyView('orbit', true);
+      },
       /* Draai met pixelverschuivingen, bv. om een veeg over de foto door te zetten in 3D */
       nudge: function (dx, dy) {
         state.yawT = clamp(state.yawT - dx * 0.0065, -1.35, 1.35);
