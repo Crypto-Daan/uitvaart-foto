@@ -226,7 +226,7 @@
   }
 
   function update() {
-    renderSizes(); renderFinishes(); renderFrames(); renderSummary();
+    renderSizes(); renderFinishes(); renderFrames(); renderSummary(); markSaved();
     if (viewer) viewer.setConfig(viewerConfig());
     snapCache.clear();
     if (state.mode === 'wall') renderWall();
@@ -564,7 +564,14 @@
     };
     im.src = url;
   }
+  function markSaved() {
+    const q = shareParams().toString();
+    const on = complete() && loadSaved().some(function (d) { return d.query === q; });
+    $('saveBtn').setAttribute('aria-pressed', String(on));
+    $('saveBtn').title = on ? 'Bewaard · klik om te verwijderen' : 'Bewaar ontwerp';
+  }
   function renderSaved() {
+    markSaved();
     const list = loadSaved();
     const box = $('savedList'); box.innerHTML = '';
     $('savedSection').hidden = list.length === 0;
@@ -592,6 +599,9 @@
   }
   $('saveBtn').addEventListener('click', function () {
     if (!complete()) { toast(!state.size ? 'Kies eerst een formaat om te bewaren.' : 'Kies eerst een afwerking om te bewaren.'); return; }
+    const q = shareParams().toString();
+    const existing = loadSaved().find(function (d) { return d.query === q; });
+    if (existing) { storeSaved(loadSaved().filter(function (d) { return d.id !== existing.id; })); renderSaved(); toast('Ontwerp verwijderd uit je bewaarde ontwerpen.'); return; }
     const entry = { id: Date.now(), ts: Date.now(), label: describe(), price: price().total, query: shareParams().toString(), thumb: null };
     const commit = function () { const list = loadSaved(); list.push(entry); storeSaved(list); renderSaved(); toast('Bewaard. Je vindt dit ontwerp terug bij "Bewaarde ontwerpen", ook als je later terugkomt.'); };
     if (viewer) getSnap(viewerConfig(), function (res) { thumbFrom(res.url, function (t) { entry.thumb = t; commit(); }); }); else commit();
@@ -647,10 +657,16 @@
       (!state.size ? $('sizeOpts') : $('finishOpts')).scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
-    state.bag += 1;
+    const n = qty();
+    state.bag += n;
     const c = $('bagCount'); c.textContent = String(state.bag); c.hidden = false;
-    toast('Toegevoegd: Poolside Backgammon · ' + describe() + ' · ' + euro(price().total));
+    toast('Toegevoegd: ' + (n > 1 ? n + ' × ' : '') + 'Poolside Backgammon · ' + describe() + ' · ' + euro(price().total * n));
   });
+  /* Aantal */
+  function qty() { const v = parseInt($('qty').value, 10); return isNaN(v) || v < 1 ? 1 : Math.min(20, v); }
+  $('qtyMinus').addEventListener('click', function () { $('qty').value = String(Math.max(1, qty() - 1)); });
+  $('qtyPlus').addEventListener('click', function () { $('qty').value = String(Math.min(20, qty() + 1)); });
+  $('qty').addEventListener('change', function () { this.value = String(qty()); });
   $('sampleBtn').addEventListener('click', function () { toast('Materiaalstaal: we sturen je gratis een stalenset met alle afwerkingen en lijstkleuren.'); });
 
   /* ---------- Start ---------- */

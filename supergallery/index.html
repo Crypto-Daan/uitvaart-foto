@@ -224,27 +224,37 @@
       </div>
 
       <div class="cta">
-        <button class="btn-primary" id="addToBag">In winkelmand</button>
-        <button class="btn-secondary" id="sampleBtn">Materiaalstaal</button>
+        <div class="qty" role="group" aria-label="Aantal">
+          <button type="button" id="qtyMinus" aria-label="Minder">−</button>
+          <input id="qty" type="number" inputmode="numeric" min="1" max="20" value="1" aria-label="Aantal" />
+          <button type="button" id="qtyPlus" aria-label="Meer">+</button>
+        </div>
+        <button class="btn-primary" id="addToBag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h2l2.4 11.5a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.5"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+          In winkelmand
+        </button>
+        <button class="btn-icon" id="saveBtn" aria-pressed="false" title="Bewaar ontwerp" aria-label="Bewaar ontwerp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.5 4.6 13.2a4.4 4.4 0 0 1 6.2-6.2L12 8.2l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2z"/></svg>
+        </button>
+      </div>
+      <div class="cta-links">
+        <button type="button" class="btn-link" id="shareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/></svg>
+          Deel ontwerp
+        </button>
+        <button type="button" class="btn-link" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+          Afbeelding
+        </button>
+        <button type="button" class="btn-link" id="sampleBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg>
+          Materiaalstaal
+        </button>
       </div>
       <div class="delivery">
         <span>Levertijd 10 werkdagen, gemaakt in ons eigen fotolab in Nederland</span>
         <span>Elke print met certificaat van Getty Images Gallery en datum van uitgifte</span>
         <span>Niet tevreden? Binnen 14 dagen retour, wij regelen het ophalen</span>
-      </div>
-      <div class="share-row">
-        <button type="button" class="btn-mini" id="saveBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.5 4.6 13.2a4.4 4.4 0 0 1 6.2-6.2L12 8.2l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2z"/></svg>
-          Bewaar ontwerp
-        </button>
-        <button type="button" class="btn-mini" id="shareBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/></svg>
-          Deel dit ontwerp
-        </button>
-        <button type="button" class="btn-mini ghost" id="downloadBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
-          Afbeelding
-        </button>
       </div>
       <section class="saved-section" id="savedSection" hidden>
         <a id="bewaard"></a>
