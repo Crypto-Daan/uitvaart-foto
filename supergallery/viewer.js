@@ -181,45 +181,50 @@
       return m;
     }
 
-    function woodMaterial(frame, length, vertical) {
-      const base = { roughness: frame.coated ? 0.38 : 0.55, metalness: 0, envMapIntensity: frame.coated ? 0.7 : 0.5, color: 0xffffff };
-      const m = new THREE.MeshStandardMaterial(base);
-      if (frame.tex) {
-        const key = frame.tex + (vertical ? '|v' : '|h') + '|' + Math.round(length);
-        let t = texCache.get(key);
-        if (!t) {
-          const tex = new THREE.Texture();
-          tex.encoding = THREE.sRGBEncoding;
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          tex.anisotropy = maxAniso;
-          tex.center.set(0.5, 0.5);
-          if (vertical) { tex.rotation = Math.PI / 2; tex.repeat.set(1, length / 60); }
-          else { tex.repeat.set(length / 60, 1); }
-          texCache.set(key, tex);
-          t = tex;
-          loadTex(frame.tex, function (src) { tex.image = src.image; tex.needsUpdate = true; });
-        }
-        m.map = t;
-      } else {
-        m.color = new THREE.Color(frame.color || 0x888888);
+    /* Lijstmateriaal: gecoat = egale kleur, fineer = houtnerf in de lengterichting van de lat */
+    function woodMaterial(frame) {
+      if (!frame.tex) {
+        return new THREE.MeshStandardMaterial({ color: frame.color != null ? frame.color : 0x888888, roughness: frame.coated ? 0.38 : 0.55, metalness: 0, envMapIntensity: frame.coated ? 0.7 : 0.5 });
       }
-      return m;
+      const key = frame.tex + '|bar';
+      let t = texCache.get(key);
+      if (!t) {
+        t = new THREE.Texture();
+        t.encoding = THREE.sRGBEncoding;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.anisotropy = maxAniso;
+        t.repeat.set(1 / 60, 12 / 60);
+        texCache.set(key, t);
+        loadTex(frame.tex, function (src) {
+          t.image = src.image;
+          const asp = src.image.width / src.image.height;   // nerf herhaalt elke 60 cm, dwarsmaat naar verhouding
+          t.repeat.set(1 / 60, asp / 60);
+          t.needsUpdate = true;
+        });
+      }
+      // fineer iets gedempt: de latten vangen veel licht en zouden anders te licht ogen
+      return new THREE.MeshStandardMaterial({ map: t, color: 0xb4b0aa, roughness: 0.6, metalness: 0, envMapIntensity: 0.3 });
     }
 
-    /* Vier lijstlatten rond een opening (innerW x innerH), profielbreedte p, diepte d, vanaf z0 */
+    /* Vier lijstlatten in verstek (45°) rond een opening (innerW x innerH), profielbreedte p, diepte d, vanaf z0.
+       Elke lat is een trapezium met de buitenrand als lange zijde; de nerf loopt per lat in de lengterichting. */
     function addFrameBars(parent, innerW, innerH, p, d, z0, frame) {
       const W = innerW + 2 * p, H = innerH + 2 * p;
-      const zc = z0 + d / 2;
-      const mk = function (sx, sy, x, y, vertical) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, d), woodMaterial(frame, vertical ? sy : sx, vertical));
-        mesh.position.set(x, y, zc);
-        mesh.castShadow = true; mesh.receiveShadow = true;
-        parent.add(mesh);
+      const mat = woodMaterial(frame);
+      const bar = function (L, rot, x, y) {
+        const s = new THREE.Shape();
+        s.moveTo(-L / 2, p / 2); s.lineTo(L / 2, p / 2); s.lineTo(L / 2 - p, -p / 2); s.lineTo(-L / 2 + p, -p / 2); s.closePath();
+        const geo = new THREE.ExtrudeGeometry(s, { depth: d, bevelEnabled: false });
+        const m = new THREE.Mesh(geo, mat);
+        m.rotation.z = rot;
+        m.position.set(x, y, z0);
+        m.castShadow = true; m.receiveShadow = true;
+        parent.add(m);
       };
-      mk(W, p, 0, H / 2 - p / 2, false);          // boven
-      mk(W, p, 0, -H / 2 + p / 2, false);         // onder
-      mk(p, innerH, -W / 2 + p / 2, 0, true);     // links
-      mk(p, innerH, W / 2 - p / 2, 0, true);      // rechts
+      bar(W, 0, 0, H / 2 - p / 2);              // boven
+      bar(W, Math.PI, 0, -H / 2 + p / 2);       // onder
+      bar(H, Math.PI / 2, -W / 2 + p / 2, 0);   // links
+      bar(H, -Math.PI / 2, W / 2 - p / 2, 0);   // rechts
     }
 
     /* Fotopaneel: dibond + plexi met de print als voorvlak. Achterzijde op z0. */
@@ -257,7 +262,7 @@
         const S = SPEC.shadow;
         const innerW = w + 2 * S.gap, innerH = h + 2 * S.gap;
         // achterpaneel van de baklijst
-        const backMat = woodMaterial(frame, innerW, false);
+        const backMat = woodMaterial(frame);
         const back = new THREE.Mesh(new THREE.BoxGeometry(innerW, innerH, S.back), backMat);
         back.position.set(0, 0, S.back / 2);
         back.receiveShadow = true;

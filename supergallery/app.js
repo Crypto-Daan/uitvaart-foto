@@ -52,12 +52,12 @@
     if (finish === 'print') {
       return [NONE].concat(WOODS.map(function (w) {
         return { key: 'pp-' + w.key, type: 'passepartout', wood: w.key, name: w.name, coated: w.coated,
-          thumb: 'img/attr/attr_' + PP_IDS[w.key] + '.jpg', tex: 'img/strip/strip_' + PP_IDS[w.key] + '.jpg', desc: 'Passe-partout 5 cm · museumglas', mod: PP_MOD };
+          thumb: 'img/attr/attr_' + PP_IDS[w.key] + '.jpg', tex: w.coated ? null : 'img/strip/strip_' + PP_IDS[w.key] + '.jpg', desc: 'Passe-partout 5 cm · museumglas', mod: PP_MOD };
       }));
     }
     return [NONE].concat(WOODS.map(function (w) {
       return { key: 'sh-' + w.key, type: 'shadow', wood: w.key, name: w.name, coated: w.coated,
-        thumb: 'img/attr/attr_' + SHADOW_IDS[w.key] + '.jpg', tex: 'img/strip/strip_' + SHADOW_IDS[w.key] + '.jpg', desc: 'Baklijst · zwevend, 5 mm ruimte', mod: SHADOW_MOD };
+        thumb: 'img/attr/attr_' + SHADOW_IDS[w.key] + '.jpg', tex: w.coated ? null : 'img/strip/strip_' + SHADOW_IDS[w.key] + '.jpg', desc: 'Baklijst · zwevend, 5 mm ruimte', mod: SHADOW_MOD };
     }));
   }
 
