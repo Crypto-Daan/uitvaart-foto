@@ -60,10 +60,17 @@ in 3D te draaien is.
 | `supergallery/vendor/three.min.js` | three.js r128 (MIT), lokaal zodat de pagina offline werkt |
 | `supergallery/img/` | Productfoto, afwerkings- en lijstthumbnails, houtstroken als texturen, gerelateerde werken |
 
-Weergaven: **3D Orbit** (slepen, scrollen/knijpen om te zoomen), **Vooraanzicht**,
+De pagina start met de 2D-foto en "Vanaf € 250,00"; de eerste keuze in de configurator
+schakelt naar 3D. Weergaven: **Foto**, **3D Orbit** (slepen om te draaien, scrollen of
+knijpen om te zoomen, twee vingers of Shift+slepen om te schuiven), **Vooraanzicht**,
 **Lijstdikte (3D)** (zijaanzicht van het profiel en de opbouw), **Glasinspectie**
-(close-up van de reflectie per afwerking). Verder: expositie-omgevingen (studio, galerie,
-woonkamer, donkere wand), schaalfiguur van 1,75 m en automatisch draaien.
+(close-up van de reflectie per afwerking), **Mijn muur** (eigen foto of camera, werk op
+ware grootte, slepen en breedte instellen) en **Vergelijk formaten** (tot drie formaten
+boven een bank van 220 cm, met prijs). Verder: expositie-omgevingen (studio, galerie,
+woonkamer, donkere wand), schaalfiguur van 1,75 m, automatisch draaien, **Deel dit
+ontwerp** (link met configuratie, met afbeelding via de deelfunctie van de telefoon),
+**Afbeelding** downloaden en **Bewaar ontwerp** (lokaal opgeslagen, met welkom-terug-banner
+en herinnering per e-mail als demo).
 
 Prijzen en opties volgen de productregels van supergallery.nl (september 2026):
 basis € 250, toeslag per afwerking en formaat, baklijst alleen bij plexi, lijst met

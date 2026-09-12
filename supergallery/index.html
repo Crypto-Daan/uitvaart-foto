@@ -41,8 +41,9 @@
       <a class="icon-btn" href="#" aria-label="Account">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7.5" r="3.8"/><path d="M4.5 20.5c0-3.9 3.4-6.5 7.5-6.5s7.5 2.6 7.5 6.5"/></svg>
       </a>
-      <a class="icon-btn" href="#" aria-label="Verlanglijst">
+      <a class="icon-btn" href="#bewaard" aria-label="Bewaarde ontwerpen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20.5 4.6 13.2a4.4 4.4 0 0 1 6.2-6.2L12 8.2l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2z"/></svg>
+        <span class="badge" id="wishCount" hidden>0</span>
       </a>
       <a class="icon-btn" href="#" aria-label="Winkelmand" id="bagBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8.5h14l-1 12H6z"/><path d="M8.5 8.5V7a3.5 3.5 0 0 1 7 0v1.5"/></svg>
@@ -95,6 +96,8 @@
           <button role="tab" data-view="front" aria-pressed="false">Vooraanzicht</button>
           <button role="tab" data-view="edge" aria-pressed="false">Lijstdikte (3D)</button>
           <button role="tab" data-view="glass" aria-pressed="false">Glasinspectie</button>
+          <button role="tab" data-view="wall" aria-pressed="false">Mijn muur</button>
+          <button role="tab" data-view="compare" aria-pressed="false">Vergelijk formaten</button>
         </div>
         <div class="toolbar-right">
           <div class="select-pill">
@@ -126,6 +129,32 @@
             Bekijk in 3D
           </button>
         </div>
+        <div class="viewer-wall off" id="viewerWall">
+          <div class="wall-scene" id="wallScene">
+            <div class="wall-default"><div class="wall-default-floor"></div></div>
+            <img id="wallPhoto" alt="" hidden />
+            <img class="wall-art" id="wallArt" alt="Het werk op jouw muur" draggable="false" />
+          </div>
+          <div class="wall-bar">
+            <label class="btn-mini file">
+              <input type="file" id="wallFile" accept="image/*" capture="environment" hidden />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/></svg>
+              Foto van je muur
+            </label>
+            <label class="wall-range">Breedte in beeld
+              <input type="range" id="wallWidth" min="150" max="800" step="10" value="350" />
+              <span id="wallWidthVal">350 cm</span>
+            </label>
+            <span class="wall-size" id="wallSizeLabel"></span>
+            <span class="wall-hint">Sleep het werk op zijn plek</span>
+          </div>
+        </div>
+        <div class="viewer-compare off" id="viewerCompare">
+          <div class="cmp-chips" id="cmpChips"></div>
+          <div class="cmp-stage" id="cmpStage"></div>
+          <div class="cmp-legend" id="cmpLegend"></div>
+          <p class="cmp-note" id="cmpNote"></p>
+        </div>
         <div class="viewer-hud">
           <div class="hud-top">
             <span class="chip"><span class="dot"></span><strong id="hudConfig">Print · geen lijst</strong></span>
@@ -145,6 +174,10 @@
 
     <!-- ================= Configurator ================= -->
     <div class="config">
+      <div class="welcome" id="welcome" hidden>
+        <span id="welcomeText"></span>
+        <div class="welcome-actions"><button type="button" class="btn-mini" id="welcomeLoad">Laden</button><button type="button" class="btn-mini ghost" id="welcomeClose">Sluiten</button></div>
+      </div>
       <h1>Poolside Backgammon</h1>
       <p class="byline">Slim Aarons · 1972</p>
       <p class="from">Vanaf € 250,00</p>
@@ -201,6 +234,33 @@
         <span>Elke print met certificaat van Getty Images Gallery en datum van uitgifte</span>
         <span>Niet tevreden? Binnen 14 dagen retour, wij regelen het ophalen</span>
       </div>
+      <div class="share-row">
+        <button type="button" class="btn-mini" id="saveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20.5 4.6 13.2a4.4 4.4 0 0 1 6.2-6.2L12 8.2l1.2-1.2a4.4 4.4 0 0 1 6.2 6.2z"/></svg>
+          Bewaar ontwerp
+        </button>
+        <button type="button" class="btn-mini" id="shareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6"/></svg>
+          Deel dit ontwerp
+        </button>
+        <button type="button" class="btn-mini ghost" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+          Afbeelding
+        </button>
+      </div>
+      <section class="saved-section" id="savedSection" hidden>
+        <a id="bewaard"></a>
+        <div class="group-head"><h2>Bewaarde ontwerpen</h2></div>
+        <div class="saved-list" id="savedList"></div>
+        <form class="remind" id="remindForm">
+          <label for="remindMail">Herinnering per e-mail</label>
+          <div class="remind-row">
+            <input type="email" id="remindMail" placeholder="jouw@e-mail.nl" required />
+            <button type="submit" class="btn-mini">Stuur over 2 dagen</button>
+          </div>
+          <small>Je krijgt één mail met je bewaarde ontwerp. Geen nieuwsbrief.</small>
+        </form>
+      </section>
     </div>
   </div>
 </main>

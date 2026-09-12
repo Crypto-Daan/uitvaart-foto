@@ -56,7 +56,8 @@
     const onInteract = opts.onInteract || function () {};
 
     /* Renderer */
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -472,7 +473,47 @@
     }
     setStudio('studio');
 
+    /* Losse render van het werk (vooraanzicht, transparante achtergrond), voor muur, vergelijking en delen.
+       cb({ url, W, H }) — W/H in cm. */
+    function snapshot(cfg, cb) {
+      if (!photoReady) { setTimeout(function () { snapshot(cfg, cb); }, 150); return; }
+      const run = function () {
+        const prev = state.cfg;
+        const swap = cfg && cfg !== prev;
+        const cam0 = { yaw: state.yaw, pitch: state.pitch, dist: state.dist, tx: state.tx, ty: state.ty, yawT: state.yawT, pitchT: state.pitchT, distT: state.distT, txT: state.txT, tyT: state.tyT, W: state.W, H: state.H, fit: state.fit };
+        if (swap) { state.cfg = cfg; rebuild(); }
+        const d = dims(state.cfg);
+        const vis = [wall.visible, floor.visible, skirting.visible, figure.visible];
+        wall.visible = floor.visible = skirting.visible = figure.visible = false;
+        const pw = 1200, ph = Math.max(200, Math.round(pw * d.H / d.W));
+        const size = renderer.getSize(new THREE.Vector2());
+        renderer.setSize(pw, ph, false);
+        const cam = new THREE.PerspectiveCamera(8, pw / ph, 1, 5000);
+        cam.position.set(0, 0, (d.H * 1.03 / 2) / Math.tan(4 * DEG) + d.D);
+        cam.lookAt(0, 0, 0);
+        state.photoMats.forEach(function (m) { m.envMapIntensity = m._baseEnv; });
+        renderer.render(scene, cam);
+        const url = renderer.domElement.toDataURL('image/png');
+        renderer.setSize(size.x, size.y, false);
+        wall.visible = vis[0]; floor.visible = vis[1]; skirting.visible = vis[2]; figure.visible = vis[3];
+        if (swap) { state.cfg = prev; rebuild(); Object.assign(state, cam0); }
+        cb({ url: url, W: d.W, H: d.H, D: d.D });
+      };
+      const fr = (cfg || state.cfg).frame;
+      if (fr && fr.tex) loadTex(fr.tex, function () { setTimeout(run, 30); }); else run();
+    }
+
+    /* Afbeelding van de huidige 3D-weergave (met muur), bv. om te delen */
+    function capture() {
+      updateCamera();
+      renderer.render(scene, camera);
+      return renderer.domElement.toDataURL('image/jpeg', 0.9);
+    }
+
     return {
+      snapshot: snapshot,
+      capture: capture,
+      getConfig: function () { return state.cfg; },
       setConfig: function (cfg) {
         state.cfg = { w: cfg.w, h: cfg.h, finish: cfg.finish, frame: cfg.frame || { type: 'none' } };
         rebuild();

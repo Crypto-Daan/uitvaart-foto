@@ -1,5 +1,6 @@
 /* SuperGallery productpagina — configurator, prijsregels en koppeling met de 3D-viewer.
-   Prijsdata volgt de productregels van supergallery.nl (basisprijs + toeslag afwerking + toeslag lijst, per formaat). */
+   Prijsdata volgt de productregels van supergallery.nl (basisprijs + toeslag afwerking + toeslag lijst, per formaat).
+   Extra's: "Mijn muur" (eigen foto op ware grootte), "Vergelijk formaten", delen en bewaren van een ontwerp. */
 (function () {
   'use strict';
 
@@ -41,6 +42,7 @@
   const PP_IDS = { white: 65, maple: 66, oak: 67, walnut: 68, wenge: 69, black: 70 };
   const SHADOW_MOD = { 42: 100, 43: 140, 44: 150, 45: 200, 46: 250, 47: 300, 48: 450, 49: 550 };
   const PP_MOD = { 42: 150, 43: 200, 44: 250, 45: 400, 46: 500, 47: 750, 48: 1000 }; // Giant: niet leverbaar
+  const MAT_SHARE = 0.2; // passe-partout 5 cm kost 20% van de lijstprijs (shopregel)
 
   const NONE_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#f4f4f4"/>' +
@@ -75,7 +77,6 @@
   /* ---------- Status ----------
      Zonder voorselectie: de pagina start met de 2D-foto en "Vanaf € 250,00".
      Pas bij een keuze schakelt de viewer naar 3D. */
-  const MAT_SHARE = 0.2; // passe-partout 5 cm kost 20% van de lijstprijs (shopregel)
   const state = { size: null, finish: null, frame: NONE, mat: false, bag: 0, mode: 'photo' };
   const PREVIEW = { size: SIZES[1], finish: FINISHES[1] };   // voorbeeld in 3D zolang er nog niets gekozen is
 
@@ -97,26 +98,29 @@
     const adj = { Wit: 'Witte', Zwart: 'Zwarte', Esdoorn: 'Esdoorn', Eiken: 'Eiken', Walnoot: 'Walnoten', Wengé: 'Wengé' }[w] || w;
     return adj + ' lijst';
   }
-
-  function price() {
+  function describe() {
     const e = eff();
-    const sid = e.size.id;
-    const fin = e.finish.mod[sid] || 0;
-    const fr = state.frame.type === 'none' ? 0 : (state.frame.mod[sid] || 0);
-    const mat = hasMatOption() && state.mat ? matPrice() : 0;
-    return { base: BASE, fin: fin, frame: fr, mat: mat, total: BASE + fin + fr + mat };
+    return e.size.name + ' · ' + e.finish.name + ' · ' + frameName(state.frame);
   }
+
+  function priceFor(size, finish, frame, mat) {
+    const sid = size.id;
+    const fin = finish.mod[sid] || 0;
+    const fr = frame.type === 'none' ? 0 : (frame.mod[sid] || 0);
+    const m = finish.key === 'print' && frame.type === 'passepartout' && mat ? Math.round(fr * MAT_SHARE) : 0;
+    return { base: BASE, fin: fin, frame: fr, mat: m, total: BASE + fin + fr + m };
+  }
+  function price() { const e = eff(); return priceFor(e.size, e.finish, state.frame, state.mat); }
   function hasMatOption() { return !!state.finish && state.finish.key === 'print' && state.frame.type === 'passepartout'; }
   function matPrice() { return Math.round((state.frame.mod[eff().size.id] || 0) * MAT_SHARE); }
 
-  function viewerConfig() {
-    const e = eff();
-    const f = state.frame;
-    return { w: e.size.w, h: e.size.h, finish: e.finish.key,
-      frame: f.type === 'none' ? { type: 'none' } : { type: f.type, mat: f.type === 'passepartout' && state.mat, tex: f.tex, coated: f.coated, color: f.coated ? (f.wood === 'white' ? 0xf2f2f0 : 0x161616) : 0x9a7b55 } };
+  function configFor(size, finish, frame, mat) {
+    return { w: size.w, h: size.h, finish: finish.key,
+      frame: frame.type === 'none' ? { type: 'none' } : { type: frame.type, mat: frame.type === 'passepartout' && !!mat, tex: frame.tex, coated: frame.coated, color: frame.coated ? (frame.wood === 'white' ? 0xf2f2f0 : 0x161616) : 0x9a7b55 } };
   }
+  function viewerConfig() { const e = eff(); return configFor(e.size, e.finish, state.frame, state.mat); }
 
-  /* Elke keuze in de configurator brengt de viewer naar 3D */
+  /* Elke keuze in de configurator brengt de viewer naar 3D (behalve in muur- of vergelijkstand) */
   function choose(fn) { fn(); if (state.mode === 'photo') setMode('3d'); update(); }
 
   /* ---------- Rendering van opties ---------- */
@@ -203,7 +207,6 @@
 
   function renderSummary() {
     const p = price();
-    const e = eff();
     const cfg = viewerConfig();
     const d = window.ArtViewer.dims(cfg);
     const done = complete();
@@ -219,12 +222,15 @@
     $('sumPrice').textContent = done ? euro(p.total) : 'Vanaf ' + euro(BASE);
     $('sumLabel').textContent = done ? 'Totaal' : 'Prijs';
     $('hudSize').textContent = fmtWH(d.W, d.H);
-    $('hudConfig').textContent = (done ? '' : 'Voorbeeld · ') + e.size.name + ' · ' + e.finish.name + ' · ' + frameName(state.frame);
+    $('hudConfig').textContent = (done ? '' : 'Voorbeeld · ') + describe();
   }
 
   function update() {
     renderSizes(); renderFinishes(); renderFrames(); renderSummary();
     if (viewer) viewer.setConfig(viewerConfig());
+    snapCache.clear();
+    if (state.mode === 'wall') renderWall();
+    if (state.mode === 'compare') renderCompare();
   }
 
   /* ---------- Gerelateerde werken ---------- */
@@ -238,36 +244,43 @@
     });
   })();
 
-  /* ---------- Viewer: foto (2D) of 3D ---------- */
+  /* ---------- Viewer: foto (2D), 3D, mijn muur, vergelijk ---------- */
   let viewer = null;
   let currentView = 'orbit';
   const viewerEl = $('viewer');
   const VIEW_HINT = { orbit: 'Sleep om te draaien', front: 'Recht van voren', edge: 'Zijaanzicht: lijstprofiel en opbouw', glass: 'Close-up: reflectie van de afwerking' };
+  const OVERLAY_MODES = { photo: 'viewerPhoto', wall: 'viewerWall', compare: 'viewerCompare' };
 
   function setViewTab(name) {
     document.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === name)); });
-    if (name !== 'photo') { currentView = name; $('hudView').textContent = VIEW_HINT[name] || ''; }
+    if (!OVERLAY_MODES[name]) { currentView = name; $('hudView').textContent = VIEW_HINT[name] || ''; }
   }
 
   function setMode(mode) {
     state.mode = mode;
-    const photo = mode === 'photo';
-    $('viewerPhoto').classList.toggle('off', !photo);
-    viewerEl.classList.toggle('is-photo', photo);
-    document.querySelectorAll('.toolbar-right .round, #studio').forEach(function (el) { el.disabled = photo; });
-    if (photo) { setViewTab('photo'); if (viewer) viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false'); }
+    Object.keys(OVERLAY_MODES).forEach(function (m) { $(OVERLAY_MODES[m]).classList.toggle('off', m !== mode); });
+    viewerEl.classList.toggle('is-photo', mode === 'photo');
+    viewerEl.classList.toggle('is-overlay', mode !== '3d');
+    document.querySelectorAll('.toolbar-right .round, #studio').forEach(function (el) { el.disabled = mode !== '3d'; });
+    if (mode !== '3d') { setViewTab(mode); if (viewer) viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false'); }
     else { setViewTab(currentView); if (viewer) viewer.setView(currentView); }
+    if (mode === 'wall') renderWall();
+    if (mode === 'compare') renderCompare();
   }
 
   function webglOK() {
     try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; }
   }
 
+  let viewerReady = false;
+  const readyQueue = [];
+  function whenReady(fn) { if (viewerReady) fn(); else readyQueue.push(fn); }
+
   if (window.THREE && window.ArtViewer && webglOK()) {
     try {
       viewer = window.ArtViewer.create(viewerEl, {
         image: 'img/poolside.jpg',
-        onReady: function () { $('viewerLoading').classList.add('done'); },
+        onReady: function () { $('viewerLoading').classList.add('done'); viewerReady = true; readyQueue.splice(0).forEach(function (f) { f(); }); },
         onInteract: function (what, val) {
           if (what === 'spin') $('spinToggle').setAttribute('aria-pressed', String(!!val));
           if (what === 'view') setViewTab(val);
@@ -285,10 +298,10 @@
   document.querySelectorAll('[data-view]').forEach(function (b) {
     b.addEventListener('click', function () {
       const v = b.dataset.view;
-      if (v === 'photo') { setMode('photo'); return; }
+      if (OVERLAY_MODES[v]) { setMode(v); return; }
       if (!viewer) return;
       currentView = v;
-      if (state.mode === 'photo') setMode('3d'); else { setViewTab(v); viewer.setView(v); }
+      if (state.mode !== '3d') setMode('3d'); else { setViewTab(v); viewer.setView(v); }
       viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false');
     });
   });
@@ -311,6 +324,255 @@
     this.setAttribute('aria-pressed', String(on));
     if (viewer) { viewer.setSpin(on); if (on) { currentView = 'orbit'; setViewTab('orbit'); } }
   });
+
+  /* ---------- Losse renders van het werk (cache per configuratie) ---------- */
+  const snapCache = new Map();
+  function snapKey(cfg) { return [cfg.w, cfg.h, cfg.finish, cfg.frame.type, cfg.frame.tex || cfg.frame.color || '', cfg.frame.mat ? 1 : 0].join('|'); }
+  function getSnap(cfg, cb) {
+    if (!viewer) return;
+    const k = snapKey(cfg);
+    if (snapCache.has(k)) { cb(snapCache.get(k)); return; }
+    whenReady(function () { viewer.snapshot(cfg, function (res) { snapCache.set(k, res); cb(res); }); });
+  }
+
+  /* ---------- 1. Mijn muur: eigen foto, werk op ware grootte ---------- */
+  const wall = { img: null, natW: 0, natH: 0, roomCm: 350, x: 0.5, y: 0.42, snap: null };
+  const wallScene = $('wallScene'), wallPhoto = $('wallPhoto'), wallArt = $('wallArt');
+
+  function wallRect() {
+    // weergegeven rechthoek van de muurfoto (object-fit: contain) binnen de scène
+    const sw = wallScene.clientWidth, sh = wallScene.clientHeight;
+    if (!wall.img) return { x: 0, y: 0, w: sw, h: sh };
+    const r = Math.min(sw / wall.natW, sh / wall.natH);
+    const w = wall.natW * r, h = wall.natH * r;
+    return { x: (sw - w) / 2, y: (sh - h) / 2, w: w, h: h };
+  }
+  function layoutWall() {
+    if (!wall.snap) return;
+    const r = wallRect();
+    const pxPerCm = r.w / wall.roomCm;
+    const w = wall.snap.W * pxPerCm, h = wall.snap.H * pxPerCm;
+    wallArt.style.width = w + 'px'; wallArt.style.height = h + 'px';
+    wallArt.style.left = (r.x + r.w * wall.x - w / 2) + 'px';
+    wallArt.style.top = (r.y + r.h * wall.y - h / 2) + 'px';
+    $('wallSizeLabel').textContent = fmtWH(wall.snap.W, wall.snap.H) + ' · ' + describe();
+  }
+  function renderWall() {
+    if (!viewer) return;
+    wallArt.classList.add('loading');
+    getSnap(viewerConfig(), function (res) { wall.snap = res; wallArt.src = res.url; wallArt.classList.remove('loading'); layoutWall(); });
+  }
+  $('wallFile').addEventListener('change', function () {
+    const f = this.files && this.files[0]; if (!f) return;
+    const url = URL.createObjectURL(f);
+    const im = new Image();
+    im.onload = function () {
+      wall.img = url; wall.natW = im.naturalWidth; wall.natH = im.naturalHeight;
+      wallPhoto.src = url; wallPhoto.hidden = false; wallScene.classList.add('has-photo');
+      layoutWall();
+      toast('Sleep het werk op de juiste plek en stel de breedte van je muur in.');
+    };
+    im.src = url;
+  });
+  $('wallWidth').addEventListener('input', function () { wall.roomCm = Number(this.value); $('wallWidthVal').textContent = this.value + ' cm'; layoutWall(); });
+  (function drag() {
+    let active = null;
+    wallArt.addEventListener('pointerdown', function (e) { active = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: wall.x, oy: wall.y }; wallArt.setPointerCapture(e.pointerId); });
+    wallArt.addEventListener('pointermove', function (e) {
+      if (!active || e.pointerId !== active.id) return;
+      const r = wallRect();
+      wall.x = Math.max(0.05, Math.min(0.95, active.ox + (e.clientX - active.x) / r.w));
+      wall.y = Math.max(0.05, Math.min(0.95, active.oy + (e.clientY - active.y) / r.h));
+      layoutWall();
+    });
+    const end = function (e) { if (active && e.pointerId === active.id) active = null; };
+    wallArt.addEventListener('pointerup', end); wallArt.addEventListener('pointercancel', end);
+  })();
+  if (window.ResizeObserver) new ResizeObserver(function () { if (state.mode === 'wall') layoutWall(); if (state.mode === 'compare') renderCompare(); }).observe(wallScene);
+
+  /* ---------- 2. Formaatvergelijker: tot drie formaten boven een bank ---------- */
+  const cmp = { picked: null };
+  function cmpDefault() {
+    const cur = state.size || SIZES[2];
+    const i = SIZES.indexOf(cur);
+    const pick = [cur];
+    if (SIZES[i + 1]) pick.push(SIZES[i + 1]); else if (SIZES[i - 1]) pick.unshift(SIZES[i - 1]);
+    return pick;
+  }
+  function renderCompare() {
+    if (!viewer) return;
+    if (!cmp.picked) cmp.picked = cmpDefault();
+    const chips = $('cmpChips'); chips.innerHTML = '';
+    SIZES.forEach(function (s) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip-btn';
+      b.setAttribute('aria-pressed', String(cmp.picked.indexOf(s) >= 0));
+      b.textContent = s.name + ' ' + s.w + '×' + s.h;
+      b.addEventListener('click', function () {
+        const i = cmp.picked.indexOf(s);
+        if (i >= 0) { if (cmp.picked.length > 1) cmp.picked.splice(i, 1); }
+        else { if (cmp.picked.length >= 3) cmp.picked.shift(); cmp.picked.push(s); }
+        cmp.picked.sort(function (a, b) { return a.short - b.short; });
+        renderCompare();
+      });
+      chips.appendChild(b);
+    });
+    const e = eff();
+    const stage = $('cmpStage'); const legend = $('cmpLegend');
+    stage.innerHTML = ''; legend.innerHTML = '';
+    const cfgs = cmp.picked.map(function (s) { return { size: s, cfg: configFor(s, e.finish, state.frame, state.mat) }; });
+    const dimsList = cfgs.map(function (c) { return window.ArtViewer.dims(c.cfg); });
+    const gap = 30;
+    const artsCm = dimsList.reduce(function (a, d) { return a + d.W; }, 0) + gap * (cfgs.length + 1);
+    const roomCm = Math.max(330, artsCm);
+    const roomH = 250; // cm van vloer tot bovenrand van het beeld
+    // schaal zo dat de kamer in breedte én hoogte in de viewer past, gecentreerd
+    const pxPerCm = Math.min(stage.clientWidth / roomCm, stage.clientHeight / roomH);
+    const roomPx = roomCm * pxPerCm, x0 = (stage.clientWidth - roomPx) / 2, y0 = stage.clientHeight - roomH * pxPerCm;
+    legend.style.width = Math.round(roomPx) + 'px'; legend.style.margin = '0 auto';
+    // bank (220 cm breed, 85 cm hoog) gecentreerd op de vloer
+    const sofa = document.createElement('div'); sofa.className = 'cmp-sofa';
+    sofa.style.width = (220 * pxPerCm) + 'px'; sofa.style.height = (85 * pxPerCm) + 'px';
+    sofa.style.left = (x0 + (roomCm - 220) / 2 * pxPerCm) + 'px';
+    sofa.innerHTML = '<svg viewBox="0 0 220 85" preserveAspectRatio="none"><rect x="14" y="4" width="192" height="46" rx="8" fill="#cfc9bf"/><rect x="0" y="34" width="34" height="40" rx="9" fill="#bfb8ad"/><rect x="186" y="34" width="34" height="40" rx="9" fill="#bfb8ad"/><rect x="24" y="44" width="172" height="30" rx="5" fill="#d9d3c9"/><rect x="24" y="74" width="10" height="11" fill="#8d857a"/><rect x="186" y="74" width="10" height="11" fill="#8d857a"/></svg>';
+    stage.appendChild(sofa);
+    const floorLine = document.createElement('div'); floorLine.className = 'cmp-floor'; stage.appendChild(floorLine);
+    // slots van gelijke breedte
+    const slotW = roomCm / cfgs.length;
+    cfgs.forEach(function (c, i) {
+      const d = dimsList[i];
+      const cx = x0 + (slotW * (i + 0.5)) * pxPerCm;
+      const cy = y0 + (roomH - 165) * pxPerCm; // hart op 165 cm hoogte
+      const img = document.createElement('img'); img.className = 'cmp-art loading'; img.alt = c.size.name;
+      img.style.width = (d.W * pxPerCm) + 'px'; img.style.height = (d.H * pxPerCm) + 'px';
+      img.style.left = (cx - d.W * pxPerCm / 2) + 'px'; img.style.top = (cy - d.H * pxPerCm / 2) + 'px';
+      stage.appendChild(img);
+      getSnap(c.cfg, function (res) { img.src = res.url; img.classList.remove('loading'); });
+      const pr = priceFor(c.size, e.finish, state.frame, state.mat).total;
+      const l = document.createElement('button'); l.type = 'button'; l.className = 'cmp-item';
+      l.setAttribute('aria-pressed', String(state.size === c.size));
+      l.innerHTML = '<b>' + c.size.name + '</b><span>' + fmtWH(d.W, d.H) + '</span><span>' + euro(pr) + '</span>';
+      l.addEventListener('click', function () { state.size = c.size; ensureFrameValid(); update(); toast(c.size.name + ' gekozen · ' + euro(pr)); });
+      legend.appendChild(l);
+    });
+    $('cmpNote').textContent = 'Bank van 220 cm als referentie · ' + e.finish.name + ' · ' + frameName(state.frame) + (complete() ? '' : ' · kies een afwerking voor de definitieve prijs');
+  }
+
+  /* ---------- 5. Delen: link met configuratie, met afbeelding waar mogelijk ---------- */
+  function shareParams() {
+    const p = new URLSearchParams();
+    if (state.size) p.set('formaat', state.size.name.toLowerCase());
+    if (state.finish) p.set('afwerking', state.finish.key);
+    if (state.frame.type !== 'none') p.set('lijst', state.frame.key);
+    if (hasMatOption() && state.mat) p.set('passepartout', '1');
+    return p;
+  }
+  function shareUrl() { const q = shareParams().toString(); return location.origin + location.pathname + (q ? '?' + q : ''); }
+  function applyParams() {
+    const p = new URLSearchParams(location.search);
+    if (!p.has('formaat') && !p.has('afwerking')) return false;
+    const s = SIZES.find(function (x) { return x.name.toLowerCase() === (p.get('formaat') || ''); });
+    const f = FINISHES.find(function (x) { return x.key === p.get('afwerking'); });
+    if (s) state.size = s;
+    if (f) state.finish = f;
+    if (f && p.get('lijst')) { const fr = frameOptions(f.key).find(function (x) { return x.key === p.get('lijst'); }); if (fr) state.frame = fr; }
+    state.mat = p.get('passepartout') === '1';
+    ensureFrameValid();
+    return true;
+  }
+  function dataUrlToFile(url, name) {
+    const parts = url.split(','), mime = parts[0].match(/:(.*?);/)[1], bin = atob(parts[1]);
+    const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new File([arr], name, { type: mime });
+  }
+  $('shareBtn').addEventListener('click', function () {
+    const url = shareUrl();
+    const text = 'Poolside Backgammon van Slim Aarons · ' + describe() + (complete() ? ' · ' + euro(price().total) : '');
+    const finish = function (ok) { if (ok) toast('Link gedeeld.'); };
+    if (navigator.share) {
+      const data = { title: 'Poolside Backgammon — SuperGallery', text: text, url: url };
+      try {
+        if (viewer && state.mode === '3d' && navigator.canShare) {
+          const file = dataUrlToFile(viewer.capture(), 'poolside-backgammon.jpg');
+          if (navigator.canShare({ files: [file] })) data.files = [file];
+        }
+      } catch (e) {}
+      navigator.share(data).then(function () { finish(true); }).catch(function () {});
+      return;
+    }
+    const copy = function () { toast('Link gekopieerd: deel je ontwerp via WhatsApp of mail.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(copy).catch(function () { prompt('Kopieer deze link', url); });
+    else prompt('Kopieer deze link', url);
+  });
+  $('downloadBtn').addEventListener('click', function () {
+    if (!viewer) return;
+    const go = function (url) { const a = document.createElement('a'); a.href = url; a.download = 'poolside-backgammon-' + describe().replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png'; document.body.appendChild(a); a.click(); a.remove(); };
+    if (state.mode === '3d') go(viewer.capture()); else getSnap(viewerConfig(), function (res) { go(res.url); });
+  });
+
+  /* ---------- 6. Bewaren en terugkomen ---------- */
+  const SAVE_KEY = 'sg-saved-designs';
+  function loadSaved() { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); } catch (e) { return []; } }
+  function storeSaved(list) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(list)); } catch (e) {} }
+  function thumbFrom(url, cb) {
+    const im = new Image();
+    im.onload = function () {
+      const c = document.createElement('canvas'); const s = 260 / Math.max(im.width, im.height);
+      c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/png'));
+    };
+    im.src = url;
+  }
+  function renderSaved() {
+    const list = loadSaved();
+    const box = $('savedList'); box.innerHTML = '';
+    $('savedSection').hidden = list.length === 0;
+    const badge = $('wishCount'); badge.textContent = String(list.length); badge.hidden = list.length === 0;
+    list.slice().reverse().forEach(function (d) {
+      const el = document.createElement('div'); el.className = 'saved';
+      el.innerHTML = '<img src="' + (d.thumb || 'img/poolside-thumb.jpg') + '" alt="" />' +
+        '<div class="saved-body"><b>' + d.label + '</b><span>' + euro(d.price) + ' · bewaard op ' + new Date(d.ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' }) + '</span>' +
+        '<div class="saved-actions"><button type="button" class="btn-mini" data-load="' + d.id + '">Laden</button><button type="button" class="btn-mini ghost" data-share="' + d.id + '">Deel</button><button type="button" class="btn-mini ghost" data-del="' + d.id + '">Verwijder</button></div></div>';
+      box.appendChild(el);
+    });
+    box.querySelectorAll('[data-load]').forEach(function (b) { b.addEventListener('click', function () { loadDesign(Number(b.dataset.load)); }); });
+    box.querySelectorAll('[data-del]').forEach(function (b) { b.addEventListener('click', function () { storeSaved(loadSaved().filter(function (d) { return d.id !== Number(b.dataset.del); })); renderSaved(); }); });
+    box.querySelectorAll('[data-share]').forEach(function (b) { b.addEventListener('click', function () { const d = loadSaved().find(function (x) { return x.id === Number(b.dataset.share); }); if (!d) return; const u = location.origin + location.pathname + '?' + d.query; if (navigator.clipboard) navigator.clipboard.writeText(u).then(function () { toast('Link gekopieerd.'); }); else prompt('Kopieer deze link', u); }); });
+  }
+  function loadDesign(id) {
+    const d = loadSaved().find(function (x) { return x.id === id; }); if (!d) return;
+    history.replaceState(null, '', location.pathname + '?' + d.query);
+    state.size = null; state.finish = null; state.frame = NONE; state.mat = false;
+    applyParams();
+    if (viewer) setMode('3d'); update();
+    $('welcome').hidden = true;
+    document.querySelector('.viewer-col').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Ontwerp geladen: ' + d.label);
+  }
+  $('saveBtn').addEventListener('click', function () {
+    if (!complete()) { toast(!state.size ? 'Kies eerst een formaat om te bewaren.' : 'Kies eerst een afwerking om te bewaren.'); return; }
+    const entry = { id: Date.now(), ts: Date.now(), label: describe(), price: price().total, query: shareParams().toString(), thumb: null };
+    const commit = function () { const list = loadSaved(); list.push(entry); storeSaved(list); renderSaved(); toast('Bewaard. Je vindt dit ontwerp terug bij "Bewaarde ontwerpen", ook als je later terugkomt.'); };
+    if (viewer) getSnap(viewerConfig(), function (res) { thumbFrom(res.url, function (t) { entry.thumb = t; commit(); }); }); else commit();
+  });
+  $('remindForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const mail = $('remindMail').value.trim();
+    if (!mail) return;
+    try { localStorage.setItem('sg-remind', mail); } catch (x) {}
+    toast('We mailen je over twee dagen op ' + mail + ' met je bewaarde ontwerp.');
+    $('remindMail').value = '';
+  });
+  (function welcomeBack() {
+    const list = loadSaved();
+    if (!list.length) return;
+    const last = list[list.length - 1];
+    $('welcomeText').textContent = 'Welkom terug. Jouw Poolside Backgammon (' + last.label + ', ' + euro(last.price) + ') staat klaar.';
+    $('welcome').hidden = false;
+    $('welcomeLoad').addEventListener('click', function () { loadDesign(last.id); });
+    $('welcomeClose').addEventListener('click', function () { $('welcome').hidden = true; });
+  })();
 
   /* ---------- Info-popover afwerking ---------- */
   let pop = null;
@@ -337,7 +599,7 @@
   let toastTimer = null;
   function toast(msg) {
     const t = $('toast'); t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2800);
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
   }
   $('addToBag').addEventListener('click', function () {
     if (!complete()) {
@@ -347,10 +609,14 @@
     }
     state.bag += 1;
     const c = $('bagCount'); c.textContent = String(state.bag); c.hidden = false;
-    toast('Toegevoegd: Poolside Backgammon · ' + state.size.name + ' · ' + state.finish.name + ' · ' + frameName(state.frame) + ' · ' + euro(price().total));
+    toast('Toegevoegd: Poolside Backgammon · ' + describe() + ' · ' + euro(price().total));
   });
   $('sampleBtn').addEventListener('click', function () { toast('Materiaalstaal: we sturen je gratis een stalenset met alle afwerkingen en lijstkleuren.'); });
 
-  setMode('photo');
+  /* ---------- Start ---------- */
+  renderSaved();
+  const fromLink = applyParams();
+  setMode(fromLink && viewer ? '3d' : 'photo');
   update();
+  if (fromLink) toast('Gedeeld ontwerp geladen: ' + describe());
 })();
