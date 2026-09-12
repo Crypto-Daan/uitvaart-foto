@@ -374,8 +374,9 @@
       const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 1) {
-        state.yawT = clamp(state.yawT + dx * 0.0065, -1.35, 1.35);
-        state.pitchT = clamp(state.pitchT - dy * 0.0045, -0.4, 0.65);
+        // het werk beweegt mee met de sleeprichting (alsof je het object zelf vastpakt)
+        state.yawT = clamp(state.yawT - dx * 0.0065, -1.35, 1.35);
+        state.pitchT = clamp(state.pitchT + dy * 0.0045, -0.4, 0.65);
         userTouched();
       } else if (pointers.size === 2) {
         const p = Array.from(pointers.values());
