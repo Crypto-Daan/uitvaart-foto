@@ -91,7 +91,7 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 
 /* ---------- USP-blokken (zoals "Certificate" op de live site) ---------- */
 .usps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-block: 28px 8px; }
-@media (max-width: 860px) { .usps { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .usps { grid-template-columns: 1fr; } .usps .usp:nth-child(n+2) { display: none; } }
 .usp { background: var(--panel); border: 1px solid var(--line); padding: 26px 24px; display: grid; grid-template-columns: 64px 1px 1fr; gap: 22px; align-items: center; }
 .usp .ic { width: 64px; height: 64px; display: grid; place-items: center; color: var(--ink); }
 .usp .ic svg { width: 56px; height: 56px; }
@@ -148,6 +148,19 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 .chip strong { color: var(--ink); font-weight: 600; }
 .chip .dot { display: none; }
 .hint { font-size: 0.74rem; color: var(--muted); text-align: right; }
+/* 2D-foto als startbeeld, tot er een configuratie is gekozen */
+.viewer-photo { position: absolute; inset: 0; z-index: 4; background: var(--surface); display: grid; place-items: center; padding: 28px 28px 64px; transition: opacity 0.35s; }
+.viewer-photo.off { opacity: 0; pointer-events: none; }
+.viewer-photo img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.viewer.is-photo { background: var(--surface); }
+.to3d {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--ground);
+  padding: 11px 18px; font-size: 0.86rem; font-weight: 600; white-space: nowrap;
+}
+.to3d svg { width: 18px; height: 18px; }
+.to3d:hover { opacity: 0.88; }
+.toolbar-right .round:disabled, .toolbar-right select:disabled { opacity: 0.4; cursor: not-allowed; }
 .viewer-loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--viewer-bg); color: var(--muted); font-size: 0.85rem; z-index: 2; transition: opacity 0.4s; }
 .viewer-loading.done { opacity: 0; pointer-events: none; }
 .viewer-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--viewer-bg); color: var(--ink-2); z-index: 3; }

@@ -90,7 +90,8 @@
     <div class="viewer-col">
       <div class="viewer-toolbar">
         <div class="seg" role="tablist" aria-label="Weergave">
-          <button role="tab" data-view="orbit" aria-pressed="true">3D Orbit</button>
+          <button role="tab" data-view="photo" aria-pressed="true">Foto</button>
+          <button role="tab" data-view="orbit" aria-pressed="false">3D Orbit</button>
           <button role="tab" data-view="front" aria-pressed="false">Vooraanzicht</button>
           <button role="tab" data-view="edge" aria-pressed="false">Lijstdikte (3D)</button>
           <button role="tab" data-view="glass" aria-pressed="false">Glasinspectie</button>
@@ -118,6 +119,13 @@
 
       <div class="viewer" id="viewer">
         <div class="viewer-loading" id="viewerLoading">3D-weergave laden…</div>
+        <div class="viewer-photo" id="viewerPhoto">
+          <img src="img/poolside.jpg" alt="Poolside Backgammon — Slim Aarons, Acapulco 1972" width="1800" height="1203" />
+          <button class="to3d" id="to3d" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+            Bekijk in 3D
+          </button>
+        </div>
         <div class="viewer-hud">
           <div class="hud-top">
             <span class="chip"><span class="dot"></span><strong id="hudConfig">Print · geen lijst</strong></span>
@@ -179,8 +187,8 @@
         <div class="row"><span>Opbouw</span><b id="sumBuild"></b></div>
         <div class="row"><span>Ophangsysteem</span><b id="sumHang"></b></div>
         <div class="total">
-          <div><span class="label">Totaal</span><small>Inclusief btw, verzending NL &amp; BE en echtheidscertificaat</small></div>
-          <span class="amount" id="sumPrice">€ 250,00</span>
+          <div><span class="label" id="sumLabel">Prijs</span><small>Inclusief btw, verzending NL &amp; BE en echtheidscertificaat</small></div>
+          <span class="amount" id="sumPrice">Vanaf € 250,00</span>
         </div>
       </div>
 

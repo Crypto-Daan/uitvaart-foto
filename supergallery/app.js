@@ -72,13 +72,18 @@
     { name: 'Snorkelling In The Shallows', img: 'img/related/4174.jpg' }
   ];
 
-  /* ---------- Status ---------- */
+  /* ---------- Status ----------
+     Zonder voorselectie: de pagina start met de 2D-foto en "Vanaf € 250,00".
+     Pas bij een keuze schakelt de viewer naar 3D. */
   const MAT_SHARE = 0.2; // passe-partout 5 cm kost 20% van de lijstprijs (shopregel)
-  const state = { size: SIZES[1], finish: FINISHES[1], frame: NONE, mat: false, bag: 0 };
+  const state = { size: null, finish: null, frame: NONE, mat: false, bag: 0, mode: 'photo' };
+  const PREVIEW = { size: SIZES[1], finish: FINISHES[1] };   // voorbeeld in 3D zolang er nog niets gekozen is
 
   const $ = function (id) { return document.getElementById(id); };
   const euro = function (n) { return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
   const fmtWH = function (w, h) { return Math.round(w) + ' × ' + Math.round(h) + ' cm'; };
+  const eff = function () { return { size: state.size || PREVIEW.size, finish: state.finish || PREVIEW.finish }; };
+  const complete = function () { return !!(state.size && state.finish); };
 
   function frameName(frame) {
     if (frame.type === 'none') return 'geen lijst';
@@ -94,20 +99,25 @@
   }
 
   function price() {
-    const sid = state.size.id;
-    const fin = state.finish.mod[sid] || 0;
+    const e = eff();
+    const sid = e.size.id;
+    const fin = e.finish.mod[sid] || 0;
     const fr = state.frame.type === 'none' ? 0 : (state.frame.mod[sid] || 0);
     const mat = hasMatOption() && state.mat ? matPrice() : 0;
     return { base: BASE, fin: fin, frame: fr, mat: mat, total: BASE + fin + fr + mat };
   }
-  function hasMatOption() { return state.finish.key === 'print' && state.frame.type === 'passepartout'; }
-  function matPrice() { return Math.round((state.frame.mod[state.size.id] || 0) * MAT_SHARE); }
+  function hasMatOption() { return !!state.finish && state.finish.key === 'print' && state.frame.type === 'passepartout'; }
+  function matPrice() { return Math.round((state.frame.mod[eff().size.id] || 0) * MAT_SHARE); }
 
   function viewerConfig() {
+    const e = eff();
     const f = state.frame;
-    return { w: state.size.w, h: state.size.h, finish: state.finish.key,
+    return { w: e.size.w, h: e.size.h, finish: e.finish.key,
       frame: f.type === 'none' ? { type: 'none' } : { type: f.type, mat: f.type === 'passepartout' && state.mat, tex: f.tex, coated: f.coated, color: f.coated ? (f.wood === 'white' ? 0xf2f2f0 : 0x161616) : 0x9a7b55 } };
   }
+
+  /* Elke keuze in de configurator brengt de viewer naar 3D */
+  function choose(fn) { fn(); if (state.mode === 'photo') setMode('3d'); update(); }
 
   /* ---------- Rendering van opties ---------- */
   function renderSizes() {
@@ -118,10 +128,10 @@
       b.setAttribute('aria-pressed', String(s === state.size));
       const from = BASE + FINISHES[0].mod[s.id];
       b.innerHTML = '<span class="t">' + s.name + '</span><span class="d">' + s.w + ' × ' + s.h + ' cm</span><span class="p">vanaf ' + euro(from) + '</span>';
-      b.addEventListener('click', function () { state.size = s; ensureFrameValid(); update(); });
+      b.addEventListener('click', function () { choose(function () { state.size = s; ensureFrameValid(); }); });
       box.appendChild(b);
     });
-    $('sizeSel').textContent = state.size.name + ' · ' + state.size.w + ' × ' + state.size.h + ' cm';
+    $('sizeSel').textContent = state.size ? state.size.name + ' · ' + state.size.w + ' × ' + state.size.h + ' cm' : 'Kies een formaat';
   }
 
   function renderFinishes() {
@@ -131,35 +141,40 @@
       b.className = 'opt pic'; b.type = 'button';
       b.setAttribute('aria-pressed', String(f === state.finish));
       b.title = f.desc;
-      b.innerHTML = '<img src="' + f.thumb + '" alt="" loading="lazy" width="320" height="320" /><span class="t">' + f.name + '</span><span class="p">' + euro(BASE + (f.mod[state.size.id] || 0)) + '</span>';
-      b.addEventListener('click', function () { state.finish = f; ensureFrameValid(); update(); });
+      const pr = state.size ? euro(BASE + (f.mod[state.size.id] || 0)) : 'vanaf ' + euro(BASE + (f.mod[SIZES[0].id] || 0));
+      b.innerHTML = '<img src="' + f.thumb + '" alt="" loading="lazy" width="320" height="320" /><span class="t">' + f.name + '</span><span class="p">' + pr + '</span>';
+      b.addEventListener('click', function () { choose(function () { state.finish = f; ensureFrameValid(); }); });
       box.appendChild(b);
     });
-    $('finishSel').textContent = state.finish.name;
+    $('finishSel').textContent = state.finish ? state.finish.name : 'Kies een afwerking';
   }
 
   function renderFrames() {
     const box = $('frameOpts'); box.innerHTML = '';
-    const isPrint = state.finish.key === 'print';
+    const finish = state.finish;
+    const isPrint = !!finish && finish.key === 'print';
     $('frameTitle').textContent = isPrint ? 'Lijst' : '3D Baklijst';
-    const opts = frameOptions(state.finish.key);
+    const opts = frameOptions(finish ? finish.key : 'glossy');
+    const sid = eff().size.id;
     opts.forEach(function (f) {
       const b = document.createElement('button');
       b.className = 'opt pic'; b.type = 'button';
-      const disabled = f.type === 'passepartout' && state.size.id === 49;
-      b.disabled = disabled;
-      b.setAttribute('aria-pressed', String(f.key === state.frame.key));
+      const unavailable = f.type === 'passepartout' && sid === 49;
+      b.disabled = !finish || unavailable;
+      b.setAttribute('aria-pressed', String(!!finish && f.key === state.frame.key));
       b.title = f.desc;
-      const extra = f.type === 'none' ? 'inbegrepen' : (disabled ? 'niet leverbaar' : '+ ' + euro(f.mod[state.size.id] || 0));
+      const extra = f.type === 'none' ? 'inbegrepen' : (unavailable ? 'niet leverbaar' : (state.size ? '+ ' : 'vanaf + ') + euro(f.mod[state.size ? sid : SIZES[0].id] || 0));
       b.innerHTML = '<img src="' + f.thumb + '" alt="" loading="lazy" width="320" height="320" /><span class="t">' + fixFrameLabel(f) + '</span><span class="p">' + extra + '</span>';
-      b.addEventListener('click', function () { state.frame = f; update(); });
+      b.addEventListener('click', function () { choose(function () { state.frame = f; }); });
       box.appendChild(b);
     });
-    $('frameSel').textContent = state.frame.type === 'none' ? 'Geen lijst' : fixFrameLabel(state.frame);
+    $('frameSel').textContent = !finish ? 'Kies eerst een afwerking' : state.frame.type === 'none' ? 'Geen lijst' : fixFrameLabel(state.frame);
     renderMat();
-    $('frameNote').textContent = isPrint
-      ? 'De losse print wordt in een vlakke houten lijst (profiel 2 cm) gezet, achter museumglas, naar keuze met een passe-partout van 5 cm rondom. Niet leverbaar voor Giant.'
-      : 'Het fotopaneel ligt 8 mm verdiept in een houten baklijst (profiel 1 cm, diepte 3,5 cm) met 5 mm ruimte rondom, waardoor het werk lijkt te zweven. Wit en zwart gecoat, de andere kleuren met echt houtfineer.';
+    $('frameNote').textContent = !finish
+      ? 'De lijstopties hangen af van de afwerking: een baklijst bij plexi, een vlakke lijst met museumglas bij een print.'
+      : isPrint
+        ? 'De losse print wordt in een vlakke houten lijst (profiel 2 cm) gezet, achter museumglas, naar keuze met een passe-partout van 5 cm rondom. Niet leverbaar voor Giant.'
+        : 'Het fotopaneel ligt 8 mm verdiept in een houten baklijst (profiel 1 cm, diepte 3,5 cm) met 5 mm ruimte rondom, waardoor het werk lijkt te zweven. Wit en zwart gecoat, de andere kleuren met echt houtfineer.';
   }
 
   function renderMat() {
@@ -173,33 +188,38 @@
       b.className = 'opt mat'; b.type = 'button';
       b.setAttribute('aria-pressed', String(state.mat === o.mat));
       b.innerHTML = '<span class="t">' + o.label + '</span>';
-      b.addEventListener('click', function () { state.mat = o.mat; update(); });
+      b.addEventListener('click', function () { choose(function () { state.mat = o.mat; }); });
       box.appendChild(b);
     });
   }
 
   function ensureFrameValid() {
+    if (state.frame.type === 'none' || !state.finish) { if (!state.finish) state.frame = NONE; return; }
     const opts = frameOptions(state.finish.key);
-    const same = opts.find(function (o) { return state.frame.type !== 'none' && o.wood === state.frame.wood; });
-    if (state.frame.type === 'none') return;
-    if (same && !(same.type === 'passepartout' && state.size.id === 49)) state.frame = same;
+    const same = opts.find(function (o) { return o.wood === state.frame.wood; });
+    if (same && !(same.type === 'passepartout' && eff().size.id === 49)) state.frame = same;
     else state.frame = NONE;
   }
 
   function renderSummary() {
     const p = price();
-    const d = window.ArtViewer.dims(viewerConfig());
-    $('sumImage').textContent = fmtWH(state.size.w, state.size.h);
-    $('sumTotal').textContent = fmtWH(d.W, d.H) + ' · ' + (d.D < 1 ? Math.round(d.D * 10) + ' mm' : d.D.toLocaleString('nl-NL') + ' cm') + ' diep';
-    let build;
-    if (state.finish.key === 'print') build = state.frame.type === 'none' ? 'Losse C-print, mat fotopapier' : 'C-print · ' + (state.mat ? 'passe-partout 5 cm · ' : '') + 'museumglas · ' + fixFrameLabel(state.frame).toLowerCase();
-    else build = 'C-print · 3 mm ' + (state.finish.key === 'museum' ? 'TruLife® museumacryl' : 'PLEXIGLAS® ' + (state.finish.key === 'glossy' ? 'glans' : 'mat')) + ' · 3 mm Dibond' + (state.frame.type === 'none' ? '' : ' · baklijst ' + state.frame.name.toLowerCase());
+    const e = eff();
+    const cfg = viewerConfig();
+    const d = window.ArtViewer.dims(cfg);
+    const done = complete();
+    $('sumImage').textContent = state.size ? fmtWH(state.size.w, state.size.h) : '—';
+    $('sumTotal').textContent = done ? fmtWH(d.W, d.H) + ' · ' + (d.D < 1 ? Math.round(d.D * 10) + ' mm' : d.D.toLocaleString('nl-NL') + ' cm') + ' diep' : '—';
+    let build = '—';
+    if (state.finish) {
+      if (state.finish.key === 'print') build = state.frame.type === 'none' ? 'Losse C-print, mat fotopapier' : 'C-print · ' + (state.mat ? 'passe-partout 5 cm · ' : '') + 'museumglas · ' + fixFrameLabel(state.frame).toLowerCase();
+      else build = 'C-print · 3 mm ' + (state.finish.key === 'museum' ? 'TruLife® museumacryl' : 'PLEXIGLAS® ' + (state.finish.key === 'glossy' ? 'glans' : 'mat')) + ' · 3 mm Dibond' + (state.frame.type === 'none' ? '' : ' · baklijst ' + state.frame.name.toLowerCase());
+    }
     $('sumBuild').textContent = build;
-    $('sumHang').textContent = state.finish.key === 'print' && state.frame.type === 'none' ? 'Geen (losse print)' : state.finish.key === 'print' ? 'Ophangoog in de lijst' : 'Verborgen verstek ophangprofiel';
-    $('sumPrice').textContent = euro(p.total);
+    $('sumHang').textContent = !state.finish ? '—' : state.finish.key === 'print' && state.frame.type === 'none' ? 'Geen (losse print)' : state.finish.key === 'print' ? 'Ophangoog in de lijst' : 'Verborgen verstek ophangprofiel';
+    $('sumPrice').textContent = done ? euro(p.total) : 'Vanaf ' + euro(BASE);
+    $('sumLabel').textContent = done ? 'Totaal' : 'Prijs';
     $('hudSize').textContent = fmtWH(d.W, d.H);
-    $('hudConfig').textContent = state.size.name + ' · ' + state.finish.name + ' · ' + frameName(state.frame);
-    document.title = 'Poolside Backgammon by Slim Aarons | SuperGallery';
+    $('hudConfig').textContent = (done ? '' : 'Voorbeeld · ') + e.size.name + ' · ' + e.finish.name + ' · ' + frameName(state.frame);
   }
 
   function update() {
@@ -218,14 +238,25 @@
     });
   })();
 
-  /* ---------- 3D-viewer ---------- */
+  /* ---------- Viewer: foto (2D) of 3D ---------- */
   let viewer = null;
+  let currentView = 'orbit';
   const viewerEl = $('viewer');
   const VIEW_HINT = { orbit: 'Sleep om te draaien', front: 'Recht van voren', edge: 'Zijaanzicht: lijstprofiel en opbouw', glass: 'Close-up: reflectie van de afwerking' };
 
   function setViewTab(name) {
     document.querySelectorAll('[data-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === name)); });
-    $('hudView').textContent = VIEW_HINT[name] || '';
+    if (name !== 'photo') { currentView = name; $('hudView').textContent = VIEW_HINT[name] || ''; }
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    const photo = mode === 'photo';
+    $('viewerPhoto').classList.toggle('off', !photo);
+    viewerEl.classList.toggle('is-photo', photo);
+    document.querySelectorAll('.toolbar-right .round, #studio').forEach(function (el) { el.disabled = photo; });
+    if (photo) { setViewTab('photo'); if (viewer) viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false'); }
+    else { setViewTab(currentView); if (viewer) viewer.setView(currentView); }
   }
 
   function webglOK() {
@@ -245,25 +276,29 @@
     } catch (e) { viewer = null; console.error(e); }
   }
   if (!viewer) {
-    const fb = document.createElement('div');
-    fb.className = 'viewer-fallback';
-    fb.innerHTML = '<div><img src="img/poolside.jpg" alt="Poolside Backgammon" /><p style="margin-top:14px;font-size:.8rem">3D-weergave is niet beschikbaar in deze browser. Hier zie je de afbeelding.</p></div>';
-    viewerEl.appendChild(fb);
+    // geen WebGL: de foto blijft staan, de 3D-knoppen doen niets
     $('viewerLoading').classList.add('done');
+    $('to3d').hidden = true;
+    document.querySelectorAll('[data-view]:not([data-view="photo"])').forEach(function (b) { b.disabled = true; });
   }
 
   document.querySelectorAll('[data-view]').forEach(function (b) {
     b.addEventListener('click', function () {
       const v = b.dataset.view;
-      setViewTab(v);
-      if (viewer) { viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false'); viewer.setView(v); }
+      if (v === 'photo') { setMode('photo'); return; }
+      if (!viewer) return;
+      currentView = v;
+      if (state.mode === 'photo') setMode('3d'); else { setViewTab(v); viewer.setView(v); }
+      viewer.setSpin(false); $('spinToggle').setAttribute('aria-pressed', 'false');
     });
   });
+  $('to3d').addEventListener('click', function () { if (viewer) setMode('3d'); });
   $('resetView').addEventListener('click', function () {
-    setViewTab('orbit');
+    currentView = 'orbit'; setViewTab('orbit');
     $('studio').value = 'studio';
     $('spinToggle').setAttribute('aria-pressed', 'false');
-    if (viewer) { viewer.setSpin(false); viewer.setStudio('studio'); viewer.reset(); }
+    $('scaleToggle').setAttribute('aria-pressed', 'false');
+    if (viewer) { viewer.setSpin(false); viewer.setScale(false); viewer.setStudio('studio'); viewer.reset(); }
   });
   $('studio').addEventListener('change', function () { if (viewer) viewer.setStudio(this.value); });
   $('scaleToggle').addEventListener('click', function () {
@@ -274,7 +309,7 @@
   $('spinToggle').addEventListener('click', function () {
     const on = this.getAttribute('aria-pressed') !== 'true';
     this.setAttribute('aria-pressed', String(on));
-    if (viewer) { viewer.setSpin(on); if (on) setViewTab('orbit'); }
+    if (viewer) { viewer.setSpin(on); if (on) { currentView = 'orbit'; setViewTab('orbit'); } }
   });
 
   /* ---------- Info-popover afwerking ---------- */
@@ -285,7 +320,7 @@
     pop = document.createElement('div');
     pop.className = 'popover';
     pop.innerHTML = '<button class="close" aria-label="Sluiten">×</button><h3>Het verschil zit in de reflectie</h3>' +
-      '<p><b>Print</b> — de losse C-print, mat. Zelf inlijsten of kies hieronder een lijst met passe-partout.</p>' +
+      '<p><b>Print</b> — de losse C-print, mat. Zelf inlijsten of kies hieronder een lijst, met of zonder passe-partout.</p>' +
       '<p><b>Plexi glossy</b> — glanzend beeld met veel diepte; de ruimte kan in het oppervlak spiegelen.</p>' +
       '<p><b>Plexi matt</b> — ingetogen, weinig reflectie, rustig in fel verlichte ruimtes.</p>' +
       '<p><b>Museumplexi</b> — TruLife®: de glans blijft, maar je spiegelbeeld is nauwelijks zichtbaar.</p>' +
@@ -305,11 +340,17 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2800);
   }
   $('addToBag').addEventListener('click', function () {
+    if (!complete()) {
+      toast(!state.size ? 'Kies eerst een formaat.' : 'Kies eerst een afwerking.');
+      (!state.size ? $('sizeOpts') : $('finishOpts')).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     state.bag += 1;
     const c = $('bagCount'); c.textContent = String(state.bag); c.hidden = false;
     toast('Toegevoegd: Poolside Backgammon · ' + state.size.name + ' · ' + state.finish.name + ' · ' + frameName(state.frame) + ' · ' + euro(price().total));
   });
   $('sampleBtn').addEventListener('click', function () { toast('Materiaalstaal: we sturen je gratis een stalenset met alle afwerkingen en lijstkleuren.'); });
 
+  setMode('photo');
   update();
 })();
