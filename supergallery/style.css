@@ -20,23 +20,6 @@
   --font-mono: "Courier New", Courier, monospace;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --ground: #161616; --panel: #202020; --header: #1c1c1c; --surface: #1a1a1a;
-    --ink: #ededed; --ink-2: #cfcfcf; --muted: #9a9a9a;
-    --line: #333333; --line-strong: #ededed;
-    --shadow: 0 18px 44px rgba(0,0,0,0.5); --viewer-bg: #222222;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --ground: #161616; --panel: #202020; --header: #1c1c1c; --surface: #1a1a1a;
-  --ink: #ededed; --ink-2: #cfcfcf; --muted: #9a9a9a;
-  --line: #333333; --line-strong: #ededed;
-  --shadow: 0 18px 44px rgba(0,0,0,0.5); --viewer-bg: #222222;
-  color-scheme: dark;
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
@@ -100,7 +83,7 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
   .logo { font-size: 1.3rem; }
   .nav-tools { gap: 0; }
   .icon-btn { width: 36px; }
-  .nav-tools .icon-btn[aria-label="Verlanglijst"], #themeToggle { display: none; }
+  .nav-tools .icon-btn[aria-label="Verlanglijst"] { display: none; }
   .lang { margin-left: 4px; }
   .lang select { padding: 8px 28px 8px 10px; font-size: 0.85rem; }
   .lang::after { right: 10px; }

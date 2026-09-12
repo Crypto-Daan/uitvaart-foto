@@ -256,24 +256,6 @@
     if (viewer) { viewer.setSpin(on); if (on) setViewTab('orbit'); }
   });
 
-  /* ---------- Thema ---------- */
-  const root = document.documentElement;
-  function applyTheme(t) {
-    if (t) root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
-    const dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    $('themeToggle').setAttribute('aria-pressed', String(dark));
-    $('themeLabel').textContent = dark ? 'Licht' : 'Donker';
-  }
-  let savedTheme = null;
-  try { savedTheme = localStorage.getItem('sg-theme'); } catch (e) {}
-  applyTheme(savedTheme);
-  $('themeToggle').addEventListener('click', function () {
-    const dark = root.getAttribute('data-theme') === 'dark' || (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    const next = dark ? 'light' : 'dark';
-    applyTheme(next);
-    try { localStorage.setItem('sg-theme', next); } catch (e) {}
-  });
-
   /* ---------- Info-popover afwerking ---------- */
   let pop = null;
   $('finishInfo').addEventListener('click', function (e) {
