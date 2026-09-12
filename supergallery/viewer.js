@@ -511,6 +511,12 @@
     }
 
     return {
+      /* Draai met pixelverschuivingen, bv. om een veeg over de foto door te zetten in 3D */
+      nudge: function (dx, dy) {
+        state.yawT = clamp(state.yawT - dx * 0.0065, -1.35, 1.35);
+        state.pitchT = clamp(state.pitchT + dy * 0.0045, -0.4, 0.65);
+        userTouched();
+      },
       snapshot: snapshot,
       capture: capture,
       getConfig: function () { return state.cfg; },

@@ -322,6 +322,30 @@
     });
   });
   $('to3d').addEventListener('click', function () { if (viewer) setMode('3d'); });
+  /* Veeg over de foto: horizontaal vegen opent 3D en draait direct mee; verticaal blijft scrollen */
+  (function swipeToRotate() {
+    const el = $('viewerPhoto');
+    let g = null;
+    el.addEventListener('pointerdown', function (e) {
+      if (!viewer || e.target.closest('button')) return;
+      g = { id: e.pointerId, x: e.clientX, y: e.clientY, live: false };
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!g || e.pointerId !== g.id) return;
+      const dx = e.clientX - g.x, dy = e.clientY - g.y;
+      if (!g.live) {
+        if (Math.abs(dx) < 18 || Math.abs(dx) < Math.abs(dy) * 1.2) return;   // nog geen duidelijke horizontale veeg
+        g.live = true;
+        try { el.setPointerCapture(e.pointerId); } catch (x) {}
+        setMode('3d');
+        viewer.setView('orbit');
+      }
+      viewer.nudge(dx, dy);
+      g.x = e.clientX; g.y = e.clientY;
+    });
+    const end = function (e) { if (g && e.pointerId === g.id) g = null; };
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  })();
   $('resetView').addEventListener('click', function () {
     currentView = 'orbit'; setViewTab('orbit');
     $('studio').value = 'studio';
