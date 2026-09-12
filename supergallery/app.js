@@ -52,7 +52,7 @@
     if (finish === 'print') {
       return [NONE].concat(WOODS.map(function (w) {
         return { key: 'pp-' + w.key, type: 'passepartout', wood: w.key, name: w.name, coated: w.coated,
-          thumb: 'img/attr/attr_' + PP_IDS[w.key] + '.jpg', tex: w.coated ? null : 'img/strip/strip_' + PP_IDS[w.key] + '.jpg', desc: 'Passe-partout 5 cm · museumglas', mod: PP_MOD };
+          thumb: 'img/attr/attr_' + PP_IDS[w.key] + '.jpg', tex: w.coated ? null : 'img/strip/strip_' + PP_IDS[w.key] + '.jpg', desc: 'Vlakke lijst · museumglas · passe-partout optioneel', mod: PP_MOD };
       }));
     }
     return [NONE].concat(WOODS.map(function (w) {
@@ -73,7 +73,8 @@
   ];
 
   /* ---------- Status ---------- */
-  const state = { size: SIZES[1], finish: FINISHES[1], frame: NONE, bag: 0 };
+  const MAT_SHARE = 0.2; // passe-partout 5 cm kost 20% van de lijstprijs (shopregel)
+  const state = { size: SIZES[1], finish: FINISHES[1], frame: NONE, mat: false, bag: 0 };
 
   const $ = function (id) { return document.getElementById(id); };
   const euro = function (n) { return '€ ' + n.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
@@ -82,7 +83,7 @@
   function frameName(frame) {
     if (frame.type === 'none') return 'geen lijst';
     if (frame.type === 'shadow') return 'baklijst ' + frame.name.toLowerCase();
-    return frame.name.toLowerCase() + ' met passe-partout';
+    return fixFrameLabel(frame).toLowerCase() + (state.mat ? ' met passe-partout' : '');
   }
   function fixFrameLabel(frame) {
     // "Wit" -> "Witte lijst", "Zwart" -> "Zwarte lijst", "Eiken" -> "Eiken lijst" enz.
@@ -96,13 +97,16 @@
     const sid = state.size.id;
     const fin = state.finish.mod[sid] || 0;
     const fr = state.frame.type === 'none' ? 0 : (state.frame.mod[sid] || 0);
-    return { base: BASE, fin: fin, frame: fr, total: BASE + fin + fr };
+    const mat = hasMatOption() && state.mat ? matPrice() : 0;
+    return { base: BASE, fin: fin, frame: fr, mat: mat, total: BASE + fin + fr + mat };
   }
+  function hasMatOption() { return state.finish.key === 'print' && state.frame.type === 'passepartout'; }
+  function matPrice() { return Math.round((state.frame.mod[state.size.id] || 0) * MAT_SHARE); }
 
   function viewerConfig() {
     const f = state.frame;
     return { w: state.size.w, h: state.size.h, finish: state.finish.key,
-      frame: f.type === 'none' ? { type: 'none' } : { type: f.type, tex: f.tex, coated: f.coated, color: f.coated ? (f.wood === 'white' ? 0xf2f2f0 : 0x161616) : 0x9a7b55 } };
+      frame: f.type === 'none' ? { type: 'none' } : { type: f.type, mat: f.type === 'passepartout' && state.mat, tex: f.tex, coated: f.coated, color: f.coated ? (f.wood === 'white' ? 0xf2f2f0 : 0x161616) : 0x9a7b55 } };
   }
 
   /* ---------- Rendering van opties ---------- */
@@ -137,7 +141,7 @@
   function renderFrames() {
     const box = $('frameOpts'); box.innerHTML = '';
     const isPrint = state.finish.key === 'print';
-    $('frameTitle').textContent = isPrint ? 'Lijst met passe-partout' : '3D Baklijst';
+    $('frameTitle').textContent = isPrint ? 'Lijst' : '3D Baklijst';
     const opts = frameOptions(state.finish.key);
     opts.forEach(function (f) {
       const b = document.createElement('button');
@@ -152,9 +156,26 @@
       box.appendChild(b);
     });
     $('frameSel').textContent = state.frame.type === 'none' ? 'Geen lijst' : fixFrameLabel(state.frame);
+    renderMat();
     $('frameNote').textContent = isPrint
-      ? 'De losse print wordt in een vlakke houten lijst (profiel 2 cm) gezet, achter museumglas, met een passe-partout van 5 cm rondom. Niet leverbaar voor Giant.'
+      ? 'De losse print wordt in een vlakke houten lijst (profiel 2 cm) gezet, achter museumglas, naar keuze met een passe-partout van 5 cm rondom. Niet leverbaar voor Giant.'
       : 'Het fotopaneel ligt 8 mm verdiept in een houten baklijst (profiel 1 cm, diepte 3,5 cm) met 5 mm ruimte rondom, waardoor het werk lijkt te zweven. Wit en zwart gecoat, de andere kleuren met echt houtfineer.';
+  }
+
+  function renderMat() {
+    const box = $('matOpts');
+    const show = hasMatOption();
+    box.hidden = !show;
+    if (!show) return;
+    box.innerHTML = '';
+    [{ mat: false, label: 'Zonder passe-partout' }, { mat: true, label: 'Passe-partout 5 cm (+ ' + euro(matPrice()) + ')' }].forEach(function (o) {
+      const b = document.createElement('button');
+      b.className = 'opt mat'; b.type = 'button';
+      b.setAttribute('aria-pressed', String(state.mat === o.mat));
+      b.innerHTML = '<span class="t">' + o.label + '</span>';
+      b.addEventListener('click', function () { state.mat = o.mat; update(); });
+      box.appendChild(b);
+    });
   }
 
   function ensureFrameValid() {
@@ -171,7 +192,7 @@
     $('sumImage').textContent = fmtWH(state.size.w, state.size.h);
     $('sumTotal').textContent = fmtWH(d.W, d.H) + ' · ' + (d.D < 1 ? Math.round(d.D * 10) + ' mm' : d.D.toLocaleString('nl-NL') + ' cm') + ' diep';
     let build;
-    if (state.finish.key === 'print') build = state.frame.type === 'none' ? 'Losse C-print, mat fotopapier' : 'C-print · passe-partout 5 cm · museumglas · ' + fixFrameLabel(state.frame).toLowerCase();
+    if (state.finish.key === 'print') build = state.frame.type === 'none' ? 'Losse C-print, mat fotopapier' : 'C-print · ' + (state.mat ? 'passe-partout 5 cm · ' : '') + 'museumglas · ' + fixFrameLabel(state.frame).toLowerCase();
     else build = 'C-print · 3 mm ' + (state.finish.key === 'museum' ? 'TruLife® museumacryl' : 'PLEXIGLAS® ' + (state.finish.key === 'glossy' ? 'glans' : 'mat')) + ' · 3 mm Dibond' + (state.frame.type === 'none' ? '' : ' · baklijst ' + state.frame.name.toLowerCase());
     $('sumBuild').textContent = build;
     $('sumHang').textContent = state.finish.key === 'print' && state.frame.type === 'none' ? 'Geen (losse print)' : state.finish.key === 'print' ? 'Ophangoog in de lijst' : 'Verborgen verstek ophangprofiel';

@@ -3,7 +3,7 @@
 
    API:
      const v = ArtViewer.create(containerEl, { image: 'img/poolside.jpg', onInteract: fn });
-     v.setConfig({ w, h, finish: 'print'|'glossy'|'matt'|'museum', frame: { type, tex, color } });
+     v.setConfig({ w, h, finish: 'print'|'glossy'|'matt'|'museum', frame: { type, tex, color, mat } });
      v.setView('orbit'|'front'|'edge'|'glass');  v.setStudio('studio'|'galerie'|'woonkamer'|'donker');
      v.setScale(bool);  v.setSpin(bool);  v.reset();
      ArtViewer.dims(cfg) -> { W, H, D }  (buitenmaat incl. lijst, in cm)
@@ -28,7 +28,7 @@
       return { W: cfg.w + 2 * e, H: cfg.h + 2 * e, D: SPEC.shadow.depth };
     }
     if (t === 'passepartout') {
-      const e = SPEC.pp.mat + SPEC.pp.profile;
+      const e = (cfg.frame.mat ? SPEC.pp.mat : 0) + SPEC.pp.profile;
       return { W: cfg.w + 2 * e, H: cfg.h + 2 * e, D: SPEC.pp.depth };
     }
     if (cfg.finish === 'print') return { W: cfg.w, H: cfg.h, D: SPEC.paper };
@@ -273,7 +273,8 @@
         addPanel(g, w, h, cfg.finish, z0);
       } else if (frame.type === 'passepartout' && cfg.finish === 'print') {
         const P = SPEC.pp;
-        const innerW = w + 2 * P.mat, innerH = h + 2 * P.mat;
+        const matSize = frame.mat ? P.mat : 0;
+        const innerW = w + 2 * matSize, innerH = h + 2 * matSize;
         // achterplaat
         const back = new THREE.Mesh(new THREE.BoxGeometry(innerW, innerH, 0.3), new THREE.MeshStandardMaterial({ color: 0x9a8f80, roughness: 0.9 }));
         back.position.set(0, 0, 0.15);
@@ -283,7 +284,8 @@
         print.position.set(0, 0, 0.32);
         print.receiveShadow = true;
         g.add(print);
-        // passe-partout met venster
+        // passe-partout met venster (optioneel)
+        if (matSize > 0) {
         const shape = new THREE.Shape();
         shape.moveTo(-innerW / 2, -innerH / 2); shape.lineTo(innerW / 2, -innerH / 2); shape.lineTo(innerW / 2, innerH / 2); shape.lineTo(-innerW / 2, innerH / 2); shape.closePath();
         const hole = new THREE.Path();
@@ -295,6 +297,7 @@
         mat.position.set(0, 0, 0.34);
         mat.castShadow = true; mat.receiveShadow = true;
         g.add(mat);
+        }
         // museumglas: alleen reflectie (additief), nauwelijks spiegeling
         const glass = new THREE.Mesh(new THREE.PlaneGeometry(innerW, innerH),
           new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.02, metalness: 0, reflectivity: 0.5, envMapIntensity: 0.35, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));

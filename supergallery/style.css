@@ -189,6 +189,9 @@ header.site { background: var(--header); position: sticky; top: 0; z-index: 30; 
 .opt.pic { padding: 0 0 14px; gap: 0; }
 .opt.pic img { width: 100%; aspect-ratio: 1; object-fit: cover; margin-bottom: 14px; background: var(--panel); }
 .opt.pic .t { font-size: 0.88rem; padding-inline: 6px; }
+.opts.mats { grid-template-columns: 1fr; margin-top: 12px; }
+.opt.mat { padding: 16px 12px; }
+.opt.mat .t { font-size: 1.05rem; }
 .rule-note { font-size: 0.82rem; color: var(--muted); margin-top: 14px; }
 
 .summary { margin-top: 22px; display: grid; gap: 8px; font-size: 0.92rem; }
