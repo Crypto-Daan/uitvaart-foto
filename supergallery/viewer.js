@@ -4,7 +4,7 @@
    API:
      const v = ArtViewer.create(containerEl, { image: 'img/poolside.jpg', onInteract: fn });
      v.setConfig({ w, h, finish: 'print'|'glossy'|'matt'|'museum', frame: { type, tex, color, mat } });
-     v.setView('orbit'|'front'|'edge'|'glass');  v.setStudio('studio'|'galerie'|'woonkamer'|'donker');
+     v.setView('orbit'|'front'|'edge'|'glass'|'corner');  v.setStudio('studio'|'galerie'|'woonkamer'|'donker');
      v.setScale(bool);  v.setSpin(bool);  v.reset();
      ArtViewer.dims(cfg) -> { W, H, D }  (buitenmaat incl. lijst, in cm)
 */
@@ -48,7 +48,8 @@
     orbit: { yaw: 0.5,  pitch: 0.14,  distF: 1.0,  tx: 0,     ty: 0,    boost: 1.0 },
     front: { yaw: 0,    pitch: 0,     distF: 0.92, tx: 0,     ty: 0,    boost: 1.0 },
     edge:  { yaw: 1.2,  pitch: 0.16,  distF: 0.5,  tx: 0.3,   ty: 0,    boost: 1.0 },   // tx als fractie van W
-    glass: { yaw: 0.38, pitch: -0.06, distF: 0.36, tx: -0.16, ty: 0.12, boost: 1.6 }
+    glass: { yaw: 0.38, pitch: -0.06, distF: 0.36, tx: -0.16, ty: 0.12, boost: 1.6 },
+    corner: { yaw: 0.75, pitch: 0.42, distF: 0.26, tx: 0.42, ty: 0.36, boost: 1.0 }   // rechterbovenhoek: verstek, profiel en opbouw
   };
 
   function create(container, opts) {
@@ -426,7 +427,7 @@
       state.txT = clamp(state.txT - dx * perPx * Math.cos(state.yawT), -state.W, state.W);
       state.tyT = clamp(state.tyT + dy * perPx, -state.H - 60, state.H);
     }
-    function zoomBy(f) { state.distT = clamp(state.distT * f, state.fit * 0.22, state.fit * 2.4); }
+    function zoomBy(f) { state.distT = clamp(state.distT * f, state.fit * 0.16, state.fit * 2.4); }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
     /* ---------- Formaat en zichtbaarheid ---------- */
