@@ -49,7 +49,7 @@
     front: { yaw: 0,    pitch: 0,     distF: 0.92, tx: 0,     ty: 0,    boost: 1.0 },
     edge:  { yaw: 1.2,  pitch: 0.16,  distF: 0.5,  tx: 0.3,   ty: 0,    boost: 1.0 },   // tx als fractie van W
     glass: { yaw: 0.38, pitch: -0.06, distF: 0.36, tx: -0.16, ty: 0.12, boost: 1.6 },
-    corner: { yaw: 0.75, pitch: 0.42, distF: 0.26, tx: 0.42, ty: 0.36, boost: 1.0 }   // rechterbovenhoek: verstek, profiel en opbouw
+    corner: { yaw: 0.85, pitch: 0.5, dist: 24, tx: 0.47, ty: 0.44, boost: 1.0 }        // rechterbovenhoek van dichtbij (vaste afstand in cm): verstek, profiel en laagopbouw
   };
 
   function create(container, opts) {
@@ -229,21 +229,52 @@
       bar(H, -Math.PI / 2, W / 2 - p / 2, 0);   // rechts
     }
 
-    /* Fotopaneel: dibond + plexi met de print als voorvlak. Achterzijde op z0. */
+    /* Randtextuur van Dibond: twee dunne aluminium huiden om een zwarte polyethyleenkern */
+    let dibondTexV = null, dibondTexU = null;
+    function dibondEdge() {
+      if (dibondTexV) return;
+      const c = document.createElement('canvas'); c.width = 8; c.height = 64;
+      const g = c.getContext('2d');
+      g.fillStyle = '#151515'; g.fillRect(0, 0, 8, 64);
+      g.fillStyle = '#d6d9db'; g.fillRect(0, 0, 8, 10); g.fillRect(0, 54, 8, 10);
+      g.fillStyle = '#f6f7f8'; g.fillRect(0, 3, 8, 3); g.fillRect(0, 58, 8, 3);
+      dibondTexV = new THREE.CanvasTexture(c); dibondTexV.encoding = THREE.sRGBEncoding;
+      dibondTexU = dibondTexV.clone(); dibondTexU.center.set(0.5, 0.5); dibondTexU.rotation = Math.PI / 2; dibondTexU.needsUpdate = true;
+    }
+
+    /* Fotopaneel zoals Gallery Color het maakt: 3 mm Dibond, daarop de C-print, daarop 3 mm plexi (facemount).
+       De print ligt dus ónder de plexi; de plexirand is helder, de Dibondrand toont de aluminium huiden. Achterzijde op z0. */
     function addPanel(parent, w, h, finish, z0) {
-      const dib = new THREE.Mesh(new THREE.BoxGeometry(w, h, SPEC.dibond),
-        new THREE.MeshStandardMaterial({ color: 0x1d1d1d, roughness: 0.55, metalness: 0.35, envMapIntensity: 0.5 }));
+      dibondEdge();
+      const alu = { roughness: 0.35, metalness: 0.7, envMapIntensity: 0.8 };
+      const edgeX = new THREE.MeshStandardMaterial(Object.assign({ map: dibondTexU }, alu));
+      const edgeY = new THREE.MeshStandardMaterial(Object.assign({ map: dibondTexV }, alu));
+      const dark = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.2 });
+      const dib = new THREE.Mesh(new THREE.BoxGeometry(w, h, SPEC.dibond), [edgeX, edgeX, edgeY, edgeY, dark, dark]);
       dib.position.set(0, 0, z0 + SPEC.dibond / 2);
       dib.castShadow = true; dib.receiveShadow = true;
       parent.add(dib);
 
-      const edge = new THREE.MeshPhysicalMaterial({ color: 0xd2e8ee, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.6, envMapIntensity: 0.8 });
-      const back = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
-      const front = photoMaterial(finish);
-      const slab = new THREE.Mesh(new THREE.BoxGeometry(w, h, SPEC.plexi), [edge, edge, edge, edge, front, back]);
-      slab.position.set(0, 0, z0 + SPEC.dibond + SPEC.plexi / 2);
-      slab.castShadow = true; slab.receiveShadow = true;
-      parent.add(slab);
+      // de print: papierwitte rand, de foto als voorvlak (mat papier; de glans komt van de plexi erboven)
+      const paperT = 0.03;
+      const paper = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.9 });
+      const photo = new THREE.MeshStandardMaterial({ map: photoTex, roughness: 0.85, metalness: 0, envMapIntensity: 0.2 });
+      const print = new THREE.Mesh(new THREE.BoxGeometry(w, h, paperT), [paper, paper, paper, paper, photo, paper]);
+      print.position.set(0, 0, z0 + SPEC.dibond + paperT / 2);
+      print.receiveShadow = true;
+      parent.add(print);
+
+      // plexi: heldere rand, spiegelend voorvlak (alleen reflectie, additief, zodat de print eronder zichtbaar blijft)
+      const look = finish === 'glossy' ? { r: 0.02, e: 0.95 } : finish === 'matt' ? { r: 0.42, e: 0.4 } : { r: 0.03, e: 0.28 };
+      const plexiEdge = new THREE.MeshPhysicalMaterial({ color: 0xdfe9ed, roughness: 0.18, metalness: 0, transparent: true, opacity: 0.82, envMapIntensity: 1.0, depthWrite: false });
+      const front = new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: look.r, metalness: 0, reflectivity: 0.85, envMapIntensity: look.e, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+      front._baseEnv = look.e;
+      state.photoMats.push(front);
+      const none = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+      const plexi = new THREE.Mesh(new THREE.BoxGeometry(w, h, SPEC.plexi), [plexiEdge, plexiEdge, plexiEdge, plexiEdge, front, none]);
+      plexi.position.set(0, 0, z0 + SPEC.dibond + paperT + SPEC.plexi / 2);
+      plexi.renderOrder = 4;
+      parent.add(plexi);
 
       // ophangprofiel (verstek), verborgen achter het paneel
       const rail = new THREE.Mesh(new THREE.BoxGeometry(Math.max(10, w * 0.6), 4, SPEC.hangGap),
@@ -339,7 +370,7 @@
       const v = VIEWS[name] || VIEWS.orbit;
       state.view = name;
       state.yawT = v.yaw; state.pitchT = v.pitch;
-      state.distT = state.fit * v.distF;
+      state.distT = v.dist ? v.dist : state.fit * v.distF;
       state.txT = v.tx * state.W; state.tyT = v.ty * state.H;
       state.boostT = v.boost;
       if (!animate) { state.yaw = state.yawT; state.pitch = state.pitchT; state.dist = state.distT; state.tx = state.txT; state.ty = state.tyT; state.boost = state.boostT; }
@@ -427,7 +458,7 @@
       state.txT = clamp(state.txT - dx * perPx * Math.cos(state.yawT), -state.W, state.W);
       state.tyT = clamp(state.tyT + dy * perPx, -state.H - 60, state.H);
     }
-    function zoomBy(f) { state.distT = clamp(state.distT * f, state.fit * 0.16, state.fit * 2.4); }
+    function zoomBy(f) { state.distT = clamp(state.distT * f, Math.min(20, state.fit * 0.16), state.fit * 2.4); }
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
     /* ---------- Formaat en zichtbaarheid ---------- */
@@ -512,6 +543,7 @@
     }
 
     return {
+      _state: state,
       /* Start de camera zó dat het werk exact op de plek en grootte van de 2D-foto staat
          (r: rect van de foto in px binnen de viewer, plus vw/vh van de viewer), en beweeg dan naar het 3D-standpunt. */
       enterFrom: function (r) {

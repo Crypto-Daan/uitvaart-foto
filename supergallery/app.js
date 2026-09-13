@@ -302,6 +302,7 @@
           if (what === 'view') setViewTab(val);
         }
       });
+      window.__sgViewer = viewer;
     } catch (e) { viewer = null; console.error(e); }
   }
   if (!viewer) {
