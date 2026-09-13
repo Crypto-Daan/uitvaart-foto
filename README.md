@@ -44,3 +44,40 @@ python3 -m http.server 8000
 - Assortiment bewust smal: drie blokmaten + maatwerk, plexiglas glans/mat, ezel ja/nee.
 - Geen foto's van overledenen op de site; geen tracking- of advertentiecookies.
 - Foto-check door een mens vóór druk; bestanden 90 dagen bewaren, daarna wissen.
+
+## SuperGallery-prototype: productpagina met 3D-configurator
+
+In `supergallery/` staat een losstaand prototype van een SuperGallery-productpagina
+(Poolside Backgammon van Slim Aarons) waarin de gekozen configuratie fotorealistisch
+in 3D te draaien is.
+
+| Bestand | Inhoud |
+|---|---|
+| `supergallery/index.html` | Pagina: navigatie, 3D-viewer, configurator, "Over dit werk", kwaliteit, gerelateerde werken |
+| `supergallery/app.js` | Formaten, afwerkingen, lijsten en prijsregels (basisprijs + toeslag per formaat), koppeling met de viewer |
+| `supergallery/viewer.js` | 3D-viewer op three.js r128: fotopaneel (plexi + Dibond), baklijst, passe-partout-lijst, museumglas, studio-omgevingen, schaalfiguur |
+| `supergallery/style.css` | Huisstijl van het prototype |
+| `supergallery/vendor/three.min.js` | three.js r128 (MIT), lokaal zodat de pagina offline werkt |
+| `supergallery/img/` | Productfoto, afwerkings- en lijstthumbnails, houtstroken als texturen, gerelateerde werken |
+
+De pagina start met de 2D-foto en "Vanaf € 250,00"; de eerste keuze in de configurator
+schakelt naar 3D. Weergaven: **Foto**, **3D Orbit** (slepen om te draaien, scrollen of
+knijpen om te zoomen, twee vingers of Shift+slepen om te schuiven), **Vooraanzicht**,
+**Lijstdikte (3D)** (zijaanzicht van het profiel en de opbouw), **Glasinspectie**
+(close-up van de reflectie per afwerking), **Mijn muur** (eigen foto of camera, werk op
+ware grootte, slepen en breedte instellen) en **Vergelijk formaten** (tot drie formaten
+boven een bank van 220 cm, met prijs). Verder: expositie-omgevingen (studio, galerie,
+woonkamer, donkere wand), schaalfiguur van 1,75 m, automatisch draaien, **Deel dit
+ontwerp** (link met configuratie, met afbeelding via de deelfunctie van de telefoon),
+**Afbeelding** downloaden en **Bewaar ontwerp** (lokaal opgeslagen, met welkom-terug-banner
+en herinnering per e-mail als demo).
+
+Prijzen en opties volgen de productregels van supergallery.nl (september 2026):
+basis € 250, toeslag per afwerking en formaat, baklijst alleen bij plexi, lijst met
+passe-partout alleen bij print (niet bij Giant). Beeld © Slim Aarons / Hulton Archive /
+Getty Images — alleen voor dit prototype.
+
+```bash
+python3 -m http.server 8000
+# open http://localhost:8000/supergallery/
+```
